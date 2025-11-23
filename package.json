@@ -13,7 +13,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "prepare": "husky"
+    "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL) { try { require('husky')() } catch(e) {} }\" || true"
   },
   "devDependencies": {
     "husky": "^9.0.11",
