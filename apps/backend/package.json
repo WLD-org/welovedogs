@@ -8,6 +8,7 @@
     "status": "supabase status",
     "reset": "supabase db reset",
     "migrate": "supabase db push",
+    "seed": "supabase db reset",
     "types": "supabase gen types typescript --local > types/database.types.ts"
   },
   "devDependencies": {

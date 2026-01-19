@@ -23,10 +23,10 @@ export async function fetchDogData(dogId: string) {
         created_at,
         escrow_id,
         stellar_address,
-        funds_needed_for
+        funds_needed_for,
+        campaign_expenses(*)
       ),
-      campaign_updates(*),
-      campaign_expenses(*)
+      campaign_updates(*)
     `
     )
     .eq("id", dogId)
@@ -137,13 +137,24 @@ export function transformDogData(dog: any, activeCampaign: any, donationTransact
         donation_type: tx.donation_type,
       })) || [],
     expenses:
-      dog.campaign_expenses?.map((expense: any) => ({
-        id: expense.id,
-        title: expense.title,
-        description: expense.description,
-        amount: Number(expense.amount) || 0,
-        date: new Date(expense.created_at).toLocaleDateString(),
-        proof: expense.proof,
-      })) || [],
+      (() => {
+        // Get expenses from all campaigns and flatten them
+        const allExpenses: any[] = [];
+        if (dog.campaigns && Array.isArray(dog.campaigns)) {
+          dog.campaigns.forEach((campaign: any) => {
+            if (campaign.campaign_expenses && Array.isArray(campaign.campaign_expenses)) {
+              allExpenses.push(...campaign.campaign_expenses);
+            }
+          });
+        }
+        return allExpenses.map((expense: any) => ({
+          id: expense.id,
+          title: expense.title,
+          description: expense.description,
+          amount: Number(expense.amount) || 0,
+          date: new Date(expense.created_at).toLocaleDateString(),
+          proof: expense.proof,
+        }));
+      })(),
   };
 }

@@ -1,13 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Support both legacy anon key and new publishable key naming
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
   // If environment variables are not set, just continue without auth check
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("Supabase environment variables not found in middleware");
+    // Silently continue - warnings are handled in client/server files
     return NextResponse.next({
       request,
     });
@@ -50,7 +53,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   } catch (error) {
-    console.error("Middleware auth error:", error);
+    console.error("Proxy auth error:", error);
     // Continue without redirect on error to prevent infinite loops
   }
 

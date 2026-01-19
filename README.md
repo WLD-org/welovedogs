@@ -306,11 +306,31 @@ The app supports multiple Stellar wallets:
 
 ## 📚 Documentation
 
-- [Getting Started Guide](./GETTING_STARTED.md)
-- [Donation Feature](./DONATION_FEATURE.md)
-- [Contracts Guide](./apps/web/CONTRACTS_GUIDE.md)
-- [NFT Setup](./apps/web/NFT_SETUP.md)
-- [Supabase Setup](./apps/backend/SUPABASE_SETUP.md)
+All documentation is organized in the [`docs/`](./docs/) directory. See the [Documentation Index](./docs/README.md) for a complete overview.
+
+### 📖 Quick Links
+
+- **[Documentation Index](./docs/README.md)** - Browse all documentation
+- **[Architecture Guide](./docs/ARCHITECTURE.md)** - System architecture, integrations, and data flows
+- **[Getting Started Guide](./docs/GETTING_STARTED.md)** - Setup and development guide
+
+### Getting Started
+- [Getting Started Guide](./docs/GETTING_STARTED.md) - Setup and development guide
+
+### Features
+- [Donation Feature](./docs/DONATION_FEATURE.md) - Donation system documentation
+- [Donation Tracking & Verification](./docs/DONATION_TRACKING_VERIFICATION.md) - How to verify on-chain donations
+
+### Backend
+- [Backend README](./apps/backend/README.md) - Supabase backend overview
+- [Database Schema](./docs/backend/DATABASE_SCHEMA.md) - Complete database schema documentation
+- [Storage Setup](./docs/backend/STORAGE_SETUP.md) - Storage buckets configuration
+- [Seed Data](./docs/backend/SEED_DATA.md) - Seed data documentation
+
+### Contracts
+- [Donation Contract Setup](./docs/contracts/DONATION_CONTRACT_SETUP.md) - Donation contract deployment
+- [Contracts Guide](./apps/web/CONTRACTS_GUIDE.md) - Smart contract integration
+- [NFT Setup](./apps/web/NFT_SETUP.md) - POD POAP NFT setup
 
 ## 🧩 Smart Contracts
 

@@ -10,9 +10,15 @@ export type AppConfig = {
 };
 
 export function getConfig(): AppConfig {
+  // Support both legacy anon key and new publishable key naming
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+    "";
+
   const cfg: AppConfig = {
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    supabaseAnonKey,
     stellarNetwork: process.env.NEXT_PUBLIC_STELLAR_NETWORK || "testnet",
     horizonUrl:
       process.env.NEXT_PUBLIC_STELLAR_HORIZON_URL || "https://horizon-testnet.stellar.org",

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 import { development, mainNet, TrustlessWorkConfig } from "@trustless-work/escrow";
 import { getConfig } from "@/lib/config";
 
@@ -15,7 +15,7 @@ export function TrustlessWorkProvider({ children }: TrustlessWorkProviderProps) 
   // Use development for testnet, mainNet for production
   const baseURL = cfg.stellarNetwork === "testnet" ? development : mainNet;
 
-  if (!apiKey) {
+  if (!apiKey && process.env.NODE_ENV === "development") {
     console.warn("Trustless Work API key not configured. Escrow functionality will be limited.");
   }
 
