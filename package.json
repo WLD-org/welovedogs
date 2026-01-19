@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build",
+    "build": "turbo run build --filter=web",
+    "build:all": "turbo run build",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL) { try { require('husky')() } catch(e) {} }\" || true"
