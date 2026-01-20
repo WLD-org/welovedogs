@@ -2,5 +2,14 @@
   "name": "@stellar-startup/tsconfig",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js"
+  "main": "index.js",
+  "exports": {
+    "./nextjs.json": "./nextjs.json"
+  },
+  "scripts": {
+    "build": "echo 'TypeScript config package - no build needed'"
+  },
+  "files": [
+    "*.json"
+  ]
 }
