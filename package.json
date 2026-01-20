@@ -31,6 +31,9 @@
   "license": "ISC",
   "dependencies": {
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "@tailwindcss/postcss": "^4.1.9",
+    "tailwindcss": "^4.1.9",
+    "postcss": "^8.5"
   }
 }
