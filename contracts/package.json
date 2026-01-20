@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "command -v stellar >/dev/null 2>&1 && stellar contract build || (echo 'Stellar CLI not found, skipping contract build' && exit 0)",
+    "build": "stellar contract build",
     "test": "cargo test",
     "optimize": "stellar contract optimize --wasm target/wasm32-unknown-unknown/release/*.wasm",
     "deploy:testnet": "stellar contract deploy --wasm target/wasm32-unknown-unknown/release/*.wasm --network testnet"
