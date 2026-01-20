@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && bash scripts/install-stellar-cli.sh && export PATH=\"$HOME/.cargo/bin:$PATH\" && npm ci && npm run build",
+  "buildCommand": "cd ../.. && bash scripts/install-stellar-cli.sh && export PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\" && npm ci && npm run build",
   "devCommand": "cd ../.. && npm run dev",
   "installCommand": "cd ../.. && npm ci",
   "framework": "nextjs",
