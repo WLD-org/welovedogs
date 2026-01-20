@@ -28,12 +28,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.1.9",
-    "postcss": "^8.5",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "tailwindcss": "^4.1.18"
-  }
+  "license": "ISC"
 }
