@@ -55,6 +55,13 @@ export function useEscrow() {
       setError(null);
 
       try {
+        // Ensure we have a valid trustline address
+        const trustlineAddress =
+          process.env.NEXT_PUBLIC_TRUSTLINE_ADDRESS || address;
+        if (!trustlineAddress) {
+          throw new Error("Trustline address is required");
+        }
+
         const payload: InitializeSingleReleaseEscrowPayload = {
           signer: address, // Required: address of the user signing the contract transaction
           engagementId: campaignId,
@@ -76,7 +83,7 @@ export function useEscrow() {
             },
           ],
           trustline: {
-            address: process.env.NEXT_PUBLIC_TRUSTLINE_ADDRESS || address, // Use env variable or fallback to connected wallet
+            address: trustlineAddress,
           },
         };
 
