@@ -3,6 +3,5 @@
   "buildCommand": "cd ../.. && npm ci && npx turbo run build --filter=web",
   "devCommand": "cd ../.. && npx turbo run dev --filter=web",
   "installCommand": "cd ../.. && npm ci",
-  "framework": "nextjs",
-  "rootDirectory": "apps/web"
+  "framework": "nextjs"
 }
