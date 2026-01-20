@@ -273,6 +273,7 @@ NEXT_PUBLIC_PLATFORM_ADDRESS=your_platform_stellar_address
 NEXT_PUBLIC_DISPUTE_RESOLVER_ADDRESS=your_dispute_resolver_address
 NEXT_PUBLIC_RELEASE_SIGNER_ADDRESS=your_release_signer_address
 NEXT_PUBLIC_TRUSTLINE_ADDRESS=your_trustline_address
+NEXT_PUBLIC_TRUSTLINE_SYMBOL=USDC  # Optional, defaults to "USDC"
 ```
 
 ## 🔐 Wallet Connection

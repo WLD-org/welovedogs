@@ -161,20 +161,30 @@ Contract Call → Soroban RPC → Smart Contract → Blockchain
 ### 3. Trustless Work Escrow Integration
 
 **Escrow Provider (`contexts/TrustlessWorkContext.tsx`)**
-- API key configuration
+- API key configuration (`NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY`)
 - Network selection (testnet/mainnet)
 - Escrow contract management
 
 **Escrow Operations (`hooks/useEscrow.ts`)**
-- Create escrow accounts
+- Create escrow accounts with trustline configuration
 - Fund escrow accounts
 - Release funds (with proof)
 - Query escrow balances
+
+**Trustline Configuration**
+- **Address**: Required trustline address for token operations
+  - Environment variable: `NEXT_PUBLIC_TRUSTLINE_ADDRESS`
+  - Fallback: Connected wallet address
+- **Symbol**: Token symbol (default: "USDC")
+  - Environment variable: `NEXT_PUBLIC_TRUSTLINE_SYMBOL`
+  - Default: "USDC"
+- Trustline object is required in escrow payload (both `address` and `symbol`)
 
 **Connection Flow:**
 ```
 App → TrustlessWorkProvider → Trustless Work API → Escrow Contracts
 Care Provider → Create Escrow → Trustless Work → Stellar Network
+  └─ Configure trustline (address + symbol) → Escrow Payload
 Donor → Fund Escrow → Trustless Work → Stellar Network
 ```
 
@@ -487,12 +497,16 @@ NFT Collection
 - Local Supabase instance
 - Stellar testnet
 - Testnet escrow contracts
+- `NEXT_PUBLIC_TRUSTLINE_ADDRESS` (optional, falls back to wallet address)
+- `NEXT_PUBLIC_TRUSTLINE_SYMBOL` (optional, defaults to "USDC")
 
 **Production**
 - Supabase cloud project
 - Stellar mainnet
 - Mainnet escrow contracts
 - Production API keys
+- `NEXT_PUBLIC_TRUSTLINE_ADDRESS` (required for escrow)
+- `NEXT_PUBLIC_TRUSTLINE_SYMBOL` (optional, defaults to "USDC")
 
 ## Integration Summary
 
