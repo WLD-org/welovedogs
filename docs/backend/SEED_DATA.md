@@ -5,6 +5,7 @@ This document describes the seed data that has been populated in the database fo
 ## Overview
 
 The seed data includes:
+
 - 3 care providers (1 rescuer, 1 shelter, 1 veterinarian)
 - 4 dogs with various conditions
 - 3 active campaigns
@@ -15,6 +16,7 @@ The seed data includes:
 ## Care Providers
 
 ### 1. Sarah Johnson (Rescuer)
+
 - **ID**: `11111111-1111-1111-1111-111111111111`
 - **Type**: Rescuer
 - **Location**: San Francisco, USA
@@ -23,6 +25,7 @@ The seed data includes:
 - **Stellar Address**: `GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF` (placeholder)
 
 ### 2. Hope Animal Shelter
+
 - **ID**: `22222222-2222-2222-2222-222222222222`
 - **Type**: Shelter
 - **Location**: Los Angeles, USA
@@ -31,6 +34,7 @@ The seed data includes:
 - **Stellar Address**: `GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB` (placeholder)
 
 ### 3. Dr. Michael Chen (Veterinarian)
+
 - **ID**: `33333333-3333-3333-3333-333333333333`
 - **Type**: Veterinarian
 - **Location**: New York, USA
@@ -41,6 +45,7 @@ The seed data includes:
 ## Dogs
 
 ### 1. Buddy
+
 - **ID**: `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`
 - **Care Provider**: Sarah Johnson (Rescuer)
 - **Status**: Recovering, needs ongoing care
@@ -48,6 +53,7 @@ The seed data includes:
 - **Ready for Adoption**: No
 
 ### 2. Luna (Emergency)
+
 - **ID**: `bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb`
 - **Care Provider**: Hope Animal Shelter
 - **Status**: Emergency case, recovering from surgery
@@ -55,6 +61,7 @@ The seed data includes:
 - **Ready for Adoption**: No
 
 ### 3. Max
+
 - **ID**: `cccccccc-cccc-cccc-cccc-cccccccccccc`
 - **Care Provider**: Dr. Michael Chen (Veterinarian)
 - **Status**: Needs hip dysplasia surgery
@@ -62,6 +69,7 @@ The seed data includes:
 - **Ready for Adoption**: No
 
 ### 4. Bella
+
 - **ID**: `dddddddd-dddd-dddd-dddd-dddddddddddd`
 - **Care Provider**: Sarah Johnson (Rescuer)
 - **Status**: Fully recovered
@@ -71,6 +79,7 @@ The seed data includes:
 ## Campaigns
 
 ### 1. Luna's Recovery Campaign
+
 - **ID**: `eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee`
 - **Dog**: Luna
 - **Goal**: $5,000
@@ -79,6 +88,7 @@ The seed data includes:
 - **Status**: Active
 
 ### 2. Max's Surgery Campaign
+
 - **ID**: `ffffffff-ffff-ffff-ffff-ffffffffffff`
 - **Dog**: Max
 - **Goal**: $8,000
@@ -87,6 +97,7 @@ The seed data includes:
 - **Status**: Active
 
 ### 3. Buddy's Care Campaign
+
 - **ID**: `gggggggg-gggg-gggg-gggg-gggggggggggg`
 - **Dog**: Buddy
 - **Goal**: $2,000

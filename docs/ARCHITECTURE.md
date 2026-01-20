@@ -129,18 +129,21 @@ We Love Dogs is a **Web3 crowdfunding platform** that combines the user experien
 ### 1. Supabase Integration
 
 **Client-Side (`lib/supabase/client.ts`)**
+
 - Browser client for client components
 - Handles authentication state
 - Database queries and mutations
 - Storage uploads/downloads
 
 **Server-Side (`lib/supabase/server.ts`)**
+
 - Server client for Server Components
 - Cookie-based session management
 - SSR-safe database queries
 - Static client for build-time data fetching
 
 **Connection Flow:**
+
 ```
 Client Component → createBrowserClient() → Supabase API
 Server Component → createServerClient() → Supabase API (with cookies)
@@ -150,18 +153,21 @@ API Route → createServerClient() → Supabase API
 ### 2. Stellar Blockchain Integration
 
 **Wallet Connection (`contexts/WalletsKitContext.tsx`)**
+
 - Multi-wallet support via Stellar Wallets Kit
 - Persistent wallet selection (localStorage)
 - Auto-reconnect on page load
 - Transaction signing abstraction
 
 **Transaction Building (`hooks/useDonation.ts`, `hooks/useEscrow.ts`)**
+
 - USDC payment operations
 - Smart contract invocations
 - Multi-op transactions (payment + contract call)
 - Transaction submission via Horizon API
 
 **Stellar CLI Integration**
+
 - **Contract Development**: Build Rust contracts using `stellar contract build`
   - Compiles contracts to WASM for `wasm32v1-none` target
   - Generates contract metadata and bindings
@@ -170,17 +176,18 @@ API Route → createServerClient() → Supabase API
   - Uploads WASM to network
   - Creates contract instances
   - Manages contract aliases for easy reference
-- **Contract Management**: 
+- **Contract Management**:
   - Generate TypeScript bindings: `stellar contract bindings typescript`
   - Invoke contract functions: `stellar contract invoke`
   - Query contract data: `stellar contract read`
   - Extend contract TTL: `stellar contract extend`
-- **Key Management**: 
+- **Key Management**:
   - Generate identities: `stellar keys generate`
   - Manage network configurations: `stellar network add`
   - Fund test accounts: `stellar keys fund`
 
 **Connection Flow:**
+
 ```
 User Action → Wallet Kit → Wallet Extension → Stellar Network
 Transaction → Horizon API → Stellar Network → Blockchain
@@ -191,17 +198,20 @@ Contract Build → Stellar CLI → WASM → Deploy → Network
 ### 3. Trustless Work Escrow Integration
 
 **Escrow Provider (`contexts/TrustlessWorkContext.tsx`)**
+
 - API key configuration (`NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY`)
 - Network selection (testnet/mainnet)
 - Escrow contract management
 
 **Escrow Operations (`hooks/useEscrow.ts`)**
+
 - Create escrow accounts with trustline configuration
 - Fund escrow accounts
 - Release funds (with proof)
 - Query escrow balances
 
 **Trustline Configuration**
+
 - **Address**: Required trustline address for token operations
   - Environment variable: `NEXT_PUBLIC_TRUSTLINE_ADDRESS`
   - Fallback: Connected wallet address
@@ -211,6 +221,7 @@ Contract Build → Stellar CLI → WASM → Deploy → Network
 - Trustline object is required in escrow payload (both `address` and `symbol`)
 
 **Connection Flow:**
+
 ```
 App → TrustlessWorkProvider → Trustless Work API → Escrow Contracts
 Care Provider → Create Escrow → Trustless Work → Stellar Network
@@ -221,16 +232,19 @@ Donor → Fund Escrow → Trustless Work → Stellar Network
 ### 4. Smart Contract Integration
 
 **Donation Contract**
+
 - Tracks all donation transactions
 - Stores donor, recipient, amount, timestamp
 - Provides query functions for donation history
 
 **POD POAP Contract**
+
 - Mints NFTs for donations
 - Stores NFT metadata (IPFS)
 - Tracks NFT ownership
 
 **Connection Flow:**
+
 ```
 Donation → Contract Invocation → Soroban RPC → Donation Contract
 NFT Mint → Contract Invocation → Soroban RPC → POD POAP Contract
@@ -238,8 +252,9 @@ Query → Soroban RPC → Smart Contract → Return Data
 ```
 
 **Build Configuration**
+
 - **Rust Contracts**: Built using Stellar CLI (`stellar contract build`)
-  - **Prerequisites**: 
+  - **Prerequisites**:
     - Stellar CLI must be installed and available in PATH
     - Rust `wasm32v1-none` target must be installed (`rustup target add wasm32v1-none`)
   - **Build Process**:
@@ -247,7 +262,7 @@ Query → Soroban RPC → Smart Contract → Return Data
     - If CLI is available, runs `stellar contract build`
     - If build fails (e.g., missing Rust target), gracefully exits with message
     - Build continues even if Rust compilation fails (TypeScript packages still build)
-  - **Output**: 
+  - **Output**:
     - WASM files written to `target/wasm32v1-none/release/`
     - Can be optimized with `--optimize` flag or `npm run optimize`
 - **TypeScript Contracts**: Automatically built via `transpilePackages` in Next.js config
@@ -258,16 +273,19 @@ Query → Soroban RPC → Smart Contract → Return Data
   - These are expected: SDK uses native modules server-side but falls back to browser-compatible code client-side
 
 **Build Script Behavior:**
+
 ```bash
 # contracts/package.json build script:
 command -v stellar >/dev/null 2>&1 && stellar contract build || \
   (echo 'Stellar CLI not available, skipping Rust contract build (TypeScript packages will still build)' && exit 0)
 ```
+
 - Checks for Stellar CLI before attempting build
 - If CLI unavailable or build fails, prints message and exits successfully (exit 0)
 - Allows build pipeline to continue with TypeScript packages
 
 **Development Workflow:**
+
 ```
 1. Write Rust contract code → contracts/donation/ or contracts/pod-poap/
 2. Install Rust target → rustup target add wasm32v1-none
@@ -278,6 +296,7 @@ command -v stellar >/dev/null 2>&1 && stellar contract build || \
 ```
 
 **Build Results:**
+
 - ✅ **Web Build**: Always succeeds (Next.js production build)
 - ✅ **TypeScript Contracts**: Always build (independent of Rust build)
 - ⚠️ **Rust Contracts**: May fail if:
@@ -291,12 +310,14 @@ command -v stellar >/dev/null 2>&1 && stellar contract build || \
 ### On-Chain vs Off-Chain Data
 
 **On-Chain (Source of Truth)**
+
 - Donation transactions (via Donation Contract)
 - NFT ownership (via POD POAP Contract)
 - Escrow contracts (via Trustless Work)
 - Transaction hashes (immutable on Stellar)
 
 **Off-Chain (Performance Cache)**
+
 - User profiles (care_providers, donors)
 - Dog profiles and campaigns
 - Campaign updates and expenses
@@ -429,33 +450,39 @@ NFT Collection
 ### Context Providers
 
 **SupabaseProvider** (`contexts/SupabaseContext.tsx`)
+
 - Provides Supabase client to all components
 - Handles authentication state
 - Storage operations wrapper
 
 **WalletsKitProvider** (`contexts/WalletsKitContext.tsx`)
+
 - Manages wallet connections
 - Provides wallet address and connection status
 - Transaction signing helpers
 
 **TrustlessWorkProvider** (`contexts/TrustlessWorkContext.tsx`)
+
 - Configures Trustless Work API
 - Provides escrow functionality
 
 ### Custom Hooks
 
 **useDonation** (`hooks/useDonation.ts`)
+
 - Builds donation transactions
 - Handles instant donations
 - Submits transactions to Stellar
 
 **useEscrow** (`hooks/useEscrow.ts`)
+
 - Creates escrow accounts
 - Funds escrow accounts
 - Releases escrow funds
 - Queries escrow balances
 
 **useWalletsKit** (`hooks/useWalletsKit.ts`)
+
 - Wallet connection management
 - Address retrieval
 - Transaction signing
@@ -463,21 +490,25 @@ NFT Collection
 ### Server Actions
 
 **updateQuestProgress** (`app/actions/update-quest-progress.ts`)
+
 - Checks quest completion
 - Updates progress in database
 - Triggers NFT minting if quest completed
 
 **generateAbout** (`app/actions/generate-about.ts`)
+
 - Generates AI content for profiles
 
 ### API Routes
 
 **`/api/donation/record`** (`app/api/donation/record/route.ts`)
+
 - Records donation transactions in database
 - Updates campaign raised amounts
 - Triggers quest progress updates
 
 **`/api/nft/mint-for-donation`** (`app/api/nft/mint-for-donation/route.ts`)
+
 - Mints POD POAP NFTs
 - Stores NFT metadata in IPFS
 - Records NFT in database
@@ -487,12 +518,14 @@ NFT Collection
 ### Authentication
 
 **Supabase Auth**
+
 - Email/password authentication
 - OAuth providers (Google, GitHub, etc.)
 - JWT tokens stored in HTTP-only cookies
 - Session management via Supabase SSR
 
 **Wallet Authentication**
+
 - Wallet connection for blockchain operations
 - No password required (cryptographic signatures)
 - Address stored in user profile
@@ -500,12 +533,14 @@ NFT Collection
 ### Authorization
 
 **Row Level Security (RLS)**
+
 - Database-level security policies
 - Public read for profiles and campaigns (transparency)
 - Owner write for user data
 - Authenticated insert for transactions
 
 **Route Protection**
+
 - Middleware/Proxy checks authentication
 - Redirects unauthenticated users
 - Protects API routes with server-side auth checks
@@ -513,11 +548,13 @@ NFT Collection
 ### Data Security
 
 **On-Chain Security**
+
 - Cryptographic signatures for transactions
 - Smart contract immutability
 - Escrow multi-party security (platform, resolver, signer)
 
 **Off-Chain Security**
+
 - RLS policies enforce data access
 - Foreign key constraints prevent orphaned data
 - Input validation on all user inputs
@@ -526,6 +563,7 @@ NFT Collection
 ### Storage Security
 
 **Supabase Storage**
+
 - Public buckets for images (transparency)
 - Authenticated upload only
 - File type and size validation
@@ -536,12 +574,14 @@ NFT Collection
 ### Frontend Deployment
 
 **Next.js Application**
+
 - Server Components (SSR)
 - Static generation for public pages
 - API Routes for backend integration
 - Edge runtime for middleware/proxy
 
 **Hosting Options**
+
 - Vercel (recommended)
 - Netlify
 - Any Node.js host
@@ -549,23 +589,27 @@ NFT Collection
 ### Backend Deployment
 
 **Supabase**
+
 - Cloud-hosted PostgreSQL
 - Managed authentication
 - CDN-backed storage
 - Edge Functions (serverless)
 
 **Local Development**
+
 - Docker-based Supabase local instance
 - Migrations applied via Supabase CLI
 
 ### Blockchain Deployment
 
 **Stellar Network**
+
 - Public testnet (development)
 - Public mainnet (production)
 - No deployment required (public network)
 
 **Smart Contracts**
+
 - Deployed to Stellar network via Stellar CLI
 - Contract IDs stored in environment variables
 - Bindings generated for TypeScript integration
@@ -573,6 +617,7 @@ NFT Collection
 ### Environment Configuration
 
 **Development**
+
 - Local Supabase instance
 - Stellar testnet
 - Testnet escrow contracts
@@ -580,6 +625,7 @@ NFT Collection
 - `NEXT_PUBLIC_TRUSTLINE_SYMBOL` (optional, defaults to "USDC")
 
 **Production**
+
 - Supabase cloud project
 - Stellar mainnet
 - Mainnet escrow contracts
@@ -606,11 +652,13 @@ Frontend (Next.js)
 ### Data Synchronization
 
 **Real-time Updates**
+
 - Campaign progress → Supabase Realtime → Frontend
 - New donations → Supabase Realtime → Frontend
 - Campaign updates → Supabase Realtime → Frontend
 
 **On-Chain Verification**
+
 - Transaction hashes stored in database
 - Links to Stellar Explorer for verification
 - Smart contract queries for on-chain data
@@ -619,16 +667,19 @@ Frontend (Next.js)
 ### Error Handling
 
 **Frontend Errors**
+
 - User-friendly error messages
 - Toast notifications
 - Error boundaries for React errors
 
 **Backend Errors**
+
 - Supabase error handling
 - Transaction rollback on errors
 - Error logging for debugging
 
 **Blockchain Errors**
+
 - Transaction failure handling
 - Network error retries
 - User feedback on failures

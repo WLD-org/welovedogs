@@ -26,24 +26,28 @@ If the buckets don't exist, create them via Supabase Dashboard:
 3. Click **"New bucket"** for each bucket:
 
 #### 1. profile-photos
+
 - **Name**: `profile-photos`
 - **Public bucket**: ✅ Yes
 - **File size limit**: 5 MB
 - **Allowed MIME types**: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
 
 #### 2. dog-images
+
 - **Name**: `dog-images`
 - **Public bucket**: ✅ Yes
 - **File size limit**: 10 MB
 - **Allowed MIME types**: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
 
 #### 3. campaign-updates
+
 - **Name**: `campaign-updates`
 - **Public bucket**: ✅ Yes
 - **File size limit**: 10 MB
 - **Allowed MIME types**: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
 
 #### 4. expense-proofs
+
 - **Name**: `expense-proofs`
 - **Public bucket**: ✅ Yes
 - **File size limit**: 5 MB
@@ -52,6 +56,7 @@ If the buckets don't exist, create them via Supabase Dashboard:
 ### Storage Policies
 
 Storage policies have been created via migration to allow:
+
 - **Public read access** - Anyone can view images (for transparency)
 - **Authenticated upload** - Only authenticated users can upload
 - **Owner update/delete** - Users can manage their own files
@@ -61,7 +66,7 @@ Storage policies have been created via migration to allow:
 To verify buckets exist, run:
 
 ```sql
-SELECT id, name, public, file_size_limit, allowed_mime_types 
+SELECT id, name, public, file_size_limit, allowed_mime_types
 FROM storage.buckets;
 ```
 
@@ -70,16 +75,19 @@ You should see all 4 buckets listed.
 ## Troubleshooting
 
 ### Error: "Bucket not found"
+
 - Verify buckets exist: Check Supabase Dashboard > Storage
 - Ensure bucket names match exactly (case-sensitive)
 - Check that the migration was applied: `npm run migrate`
 
 ### Error: "Permission denied"
+
 - Verify storage policies were created
 - Check that RLS is enabled on storage.objects
 - Ensure user is authenticated when uploading
 
 ### Files not uploading
+
 - Check file size is within limits
 - Verify MIME type is allowed
 - Ensure user is authenticated
@@ -91,15 +99,13 @@ To test if storage is working:
 
 ```typescript
 const supabase = createClient();
-const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
 
-const { data, error } = await supabase.storage
-  .from('profile-photos')
-  .upload('test/test.jpg', file);
+const { data, error } = await supabase.storage.from("profile-photos").upload("test/test.jpg", file);
 
 if (error) {
-  console.error('Upload error:', error);
+  console.error("Upload error:", error);
 } else {
-  console.log('Upload successful:', data);
+  console.log("Upload successful:", data);
 }
 ```

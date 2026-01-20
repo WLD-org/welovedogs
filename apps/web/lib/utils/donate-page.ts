@@ -136,25 +136,24 @@ export function transformDogData(dog: any, activeCampaign: any, donationTransact
         explorerUrl: tx.explorer_url,
         donation_type: tx.donation_type,
       })) || [],
-    expenses:
-      (() => {
-        // Get expenses from all campaigns and flatten them
-        const allExpenses: any[] = [];
-        if (dog.campaigns && Array.isArray(dog.campaigns)) {
-          dog.campaigns.forEach((campaign: any) => {
-            if (campaign.campaign_expenses && Array.isArray(campaign.campaign_expenses)) {
-              allExpenses.push(...campaign.campaign_expenses);
-            }
-          });
-        }
-        return allExpenses.map((expense: any) => ({
-          id: expense.id,
-          title: expense.title,
-          description: expense.description,
-          amount: Number(expense.amount) || 0,
-          date: new Date(expense.created_at).toLocaleDateString(),
-          proof: expense.proof,
-        }));
-      })(),
+    expenses: (() => {
+      // Get expenses from all campaigns and flatten them
+      const allExpenses: any[] = [];
+      if (dog.campaigns && Array.isArray(dog.campaigns)) {
+        dog.campaigns.forEach((campaign: any) => {
+          if (campaign.campaign_expenses && Array.isArray(campaign.campaign_expenses)) {
+            allExpenses.push(...campaign.campaign_expenses);
+          }
+        });
+      }
+      return allExpenses.map((expense: any) => ({
+        id: expense.id,
+        title: expense.title,
+        description: expense.description,
+        amount: Number(expense.amount) || 0,
+        date: new Date(expense.created_at).toLocaleDateString(),
+        proof: expense.proof,
+      }));
+    })(),
   };
 }

@@ -57,11 +57,9 @@ export function useEscrow() {
       try {
         // Trustline address is required - use env var or fallback to connected wallet
         // Since address is already validated above, we know it exists here
-        const trustlineAddress: string =
-          process.env.NEXT_PUBLIC_TRUSTLINE_ADDRESS || address;
+        const trustlineAddress: string = process.env.NEXT_PUBLIC_TRUSTLINE_ADDRESS || address;
         // Trustline symbol - default to USDC (can be overridden via env var if needed)
-        const trustlineSymbol: string =
-          process.env.NEXT_PUBLIC_TRUSTLINE_SYMBOL || "USDC";
+        const trustlineSymbol: string = process.env.NEXT_PUBLIC_TRUSTLINE_SYMBOL || "USDC";
 
         const payload: InitializeSingleReleaseEscrowPayload = {
           signer: address, // Required: address of the user signing the contract transaction

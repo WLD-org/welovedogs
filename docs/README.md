@@ -5,12 +5,15 @@ Welcome to the We Love Dogs documentation! This directory contains all project d
 ## 📖 Documentation Index
 
 ### Architecture
+
 - **[Architecture Documentation](./ARCHITECTURE.md)** - Complete system architecture, integrations, connections, and data flows
 
 ### Getting Started
+
 - **[Getting Started Guide](./GETTING_STARTED.md)** - Complete setup guide for developers, including prerequisites, installation, and first steps
 
 ### Features
+
 - **[Donation Feature](./DONATION_FEATURE.md)** - Comprehensive guide to the donation system implementation
 - **[Donation Tracking & Verification](./DONATION_TRACKING_VERIFICATION.md)** - How to verify on-chain donations and troubleshoot issues
 

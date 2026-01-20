@@ -17,6 +17,7 @@ The backend uses Supabase to provide a **Web2-like user experience** while lever
 The database includes 10 tables:
 
 ### Core Tables
+
 - **`care_providers`** - Care provider profiles (rescuer, shelter, veterinarian)
 - **`donors`** - Donor profiles
 - **`dogs`** - Dog profiles and metadata
@@ -62,6 +63,7 @@ npm run status
 ```
 
 Copy the credentials to `apps/web/.env.local`:
+
 - API URL → `NEXT_PUBLIC_SUPABASE_URL`
 - anon key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
@@ -84,14 +86,14 @@ This generates TypeScript types from the database schema in `apps/backend/types/
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start local Supabase instance |
-| `npm run stop` | Stop local Supabase instance |
-| `npm run status` | Show connection details and credentials |
-| `npm run reset` | Reset database to clean state (includes seed data) |
-| `npm run seed` | Alias for `reset` - resets and seeds database |
-| `npm run types` | Generate TypeScript types from database schema |
+| Command           | Description                                          |
+| ----------------- | ---------------------------------------------------- |
+| `npm run dev`     | Start local Supabase instance                        |
+| `npm run stop`    | Stop local Supabase instance                         |
+| `npm run status`  | Show connection details and credentials              |
+| `npm run reset`   | Reset database to clean state (includes seed data)   |
+| `npm run seed`    | Alias for `reset` - resets and seeds database        |
+| `npm run types`   | Generate TypeScript types from database schema       |
 | `npm run migrate` | Apply migrations to linked database (local or cloud) |
 
 ## Migrations
@@ -137,16 +139,19 @@ npm run migrate
 ## Integration with Smart Contracts
 
 ### Donations
+
 - Donations are tracked on-chain via the `donation` Soroban contract
 - The `transactions` table caches transaction hashes and metadata for UI performance
 - Always verify transactions via `tx_hash` on Stellar Explorer
 
 ### NFTs
+
 - NFTs are minted on-chain via the `pod-poap` Soroban contract
 - The `donor_achievements` table stores NFT references (`nft_token_id`, `blockchain_tx_hash`)
 - Source of truth is on-chain; database is for UI caching
 
 ### Escrow
+
 - Escrow contracts are managed by Trustless Work
 - Campaigns store `escrow_id` as a reference
 - Escrow state is tracked on-chain, not in the database
@@ -162,16 +167,19 @@ npm run migrate
 ## Troubleshooting
 
 ### Database Not Starting
+
 - Ensure Docker Desktop is running
 - Check if ports 54321-54325 are available
 - Try `npm run stop` then `npm run dev`
 
 ### RLS Policy Errors
+
 - Verify user is authenticated: `auth.uid()` should not be null
 - Check RLS policies match your use case
 - Review policies in [DATABASE_SCHEMA.md](../../docs/backend/DATABASE_SCHEMA.md)
 
 ### Type Generation Fails
+
 - Ensure Supabase is running: `npm run status`
 - Check database connection in `.env.local`
 - Verify migrations are applied: `npm run migrate`
@@ -181,12 +189,14 @@ npm run migrate
 The database includes seed data for development and testing. However, due to foreign key constraints with auth users, seed data is provided in two ways:
 
 ### ✅ Automatic Seed (Already Applied)
+
 - **3 quests** for gamification - automatically seeded via migration
   - First Donation (badge reward)
   - Hero Donor (NFT reward for $100+ donations)
   - Dog Supporter (title reward for supporting 5 dogs)
 
 ### 📝 Manual Seed (Optional - For Full Demo Data)
+
 To seed care providers, dogs, and campaigns for a complete demo experience:
 
 1. **Create auth users** via Supabase Dashboard:
@@ -195,17 +205,19 @@ To seed care providers, dogs, and campaigns for a complete demo experience:
    - The seed.sql file will automatically find user IDs by email
 
 2. **Run the seed SQL file**:
+
    ```bash
    # Option 1: Via Supabase SQL Editor (Recommended)
    # 1. Go to Supabase Dashboard > SQL Editor > New Query
    # 2. Open apps/backend/seed.sql and copy contents
    # 3. Paste and click "Run"
-   
+
    # Option 2: Via psql command line
    psql <your-connection-string> < seed.sql
    ```
 
 The seed file (`seed.sql`) includes:
+
 - **3 care providers** (rescuer, shelter, veterinarian)
 - **4 dogs** with various conditions and needs
 - **3 active campaigns** with different funding progress (64%, 15%, 93%)

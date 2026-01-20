@@ -16,9 +16,7 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(
-        new URL("/sign-in?error=Configuration error", request.url)
-      );
+      return NextResponse.redirect(new URL("/sign-in?error=Configuration error", request.url));
     }
 
     // Create a response object for redirects
@@ -80,7 +78,7 @@ export async function GET(request: NextRequest) {
 
       // Create redirect response with cookies
       const response = NextResponse.redirect(new URL(redirectUrl, request.url));
-      
+
       // Ensure cookies are set in the response
       for (const cookie of cookieStore.getAll()) {
         response.cookies.set(cookie.name, cookie.value);
