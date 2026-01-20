@@ -19,7 +19,7 @@
   "devDependencies": {
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5",
+    "prettier": "^3.8.0",
     "turbo": "^1.13.4"
   },
   "packageManager": "npm@10.2.4",
@@ -30,10 +30,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
+    "postcss": "^8.5",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "@tailwindcss/postcss": "^4.1.9",
-    "tailwindcss": "^4.1.9",
-    "postcss": "^8.5"
+    "tailwindcss": "^4.1.18"
   }
 }
