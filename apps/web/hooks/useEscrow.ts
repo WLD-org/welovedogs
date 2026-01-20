@@ -55,8 +55,9 @@ export function useEscrow() {
       setError(null);
 
       try {
-        // Get trustline address (optional - use env var or fallback to connected wallet)
-        const trustlineAddress =
+        // Trustline address is required - use env var or fallback to connected wallet
+        // Since address is already validated above, we know it exists here
+        const trustlineAddress: string =
           process.env.NEXT_PUBLIC_TRUSTLINE_ADDRESS || address;
 
         const payload: InitializeSingleReleaseEscrowPayload = {
@@ -79,11 +80,9 @@ export function useEscrow() {
               description: `Funds for ${dogName}'s care and medical expenses`,
             },
           ],
-          ...(trustlineAddress && {
-            trustline: {
-              address: trustlineAddress,
-            },
-          }),
+          trustline: {
+            address: trustlineAddress,
+          },
         };
 
         console.log("Deploying escrow with payload:", JSON.stringify(payload, null, 2));
