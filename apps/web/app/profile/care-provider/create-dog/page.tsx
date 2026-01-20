@@ -43,6 +43,7 @@ export default function CreateDogPage() {
 
     setImageFiles([...imageFiles, ...files]);
 
+    // biome-ignore lint/complexity/noForEach: <explanation>
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {

@@ -17,11 +17,5 @@
       "dependsOn": ["build"],
       "outputs": ["coverage/**"]
     }
-  },
-  "tasks": {
-    "contracts#build": {
-      "cache": false,
-      "outputs": []
-    }
   }
 }
