@@ -9,6 +9,8 @@ const transpilePackages = [
   "donation",
 ].filter(Boolean) as string[];
 
+type WebpackConfig = Parameters<NonNullable<NextConfig["webpack"]>>[0];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
@@ -28,6 +30,44 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+  },
+  webpack: (config: WebpackConfig, { isServer }) => {
+    // Suppress warnings from Stellar SDK's native dependencies
+    // These are expected: sodium-native and require-addon are Node.js native modules
+    // that the SDK uses server-side but falls back to browser-compatible code client-side
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /node_modules\/require-addon/,
+        message: /Critical dependency/,
+      },
+      {
+        module: /node_modules\/sodium-native/,
+        message: /Critical dependency/,
+      },
+      {
+        module: /node_modules\/@stellar\/stellar-base/,
+        message: /Critical dependency/,
+      },
+      // Suppress warning for dynamic imports in contract modules
+      // This is expected: podPoap.ts uses dynamic imports with variable module IDs
+      {
+        module: /lib\/contracts\/podPoap\.ts/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
+    // Exclude native modules from client-side bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+
+    return config;
   },
 };
 

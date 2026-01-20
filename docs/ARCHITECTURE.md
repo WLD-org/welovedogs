@@ -97,6 +97,12 @@ We Love Dogs is a **Web3 crowdfunding platform** that combines the user experien
   - Horizon API: Transaction queries and submission
   - Soroban RPC: Smart contract interaction
   - Stellar SDK: Core blockchain operations
+- **Stellar CLI**: Command-line tool for contract development
+  - Contract building (`stellar contract build`)
+  - Contract deployment (`stellar contract deploy`)
+  - Contract invocation and testing
+  - Key management and network configuration
+  - See: [Stellar CLI Documentation](https://developers.stellar.org/docs/tools/cli/stellar-cli)
 - **Stellar Wallets Kit**: Multi-wallet support
   - xBull, Freighter (browser extensions)
   - WalletConnect (mobile wallets)
@@ -111,6 +117,10 @@ We Love Dogs is a **Web3 crowdfunding platform** that combines the user experien
 ### Build & Tools
 
 - **Turborepo**: Monorepo build system
+- **Stellar CLI**: Smart contract development and deployment
+  - Builds Rust contracts to WASM (`stellar contract build`)
+  - Deploys contracts to networks (`stellar contract deploy`)
+  - Generates TypeScript bindings (`stellar contract bindings typescript`)
 - **ESLint & Prettier**: Code quality
 - **Husky**: Git hooks
 
@@ -151,11 +161,31 @@ API Route → createServerClient() → Supabase API
 - Multi-op transactions (payment + contract call)
 - Transaction submission via Horizon API
 
+**Stellar CLI Integration**
+- **Contract Development**: Build Rust contracts using `stellar contract build`
+  - Compiles contracts to WASM for `wasm32v1-none` target
+  - Generates contract metadata and bindings
+  - Optimizes WASM output for deployment
+- **Contract Deployment**: Deploy contracts using `stellar contract deploy`
+  - Uploads WASM to network
+  - Creates contract instances
+  - Manages contract aliases for easy reference
+- **Contract Management**: 
+  - Generate TypeScript bindings: `stellar contract bindings typescript`
+  - Invoke contract functions: `stellar contract invoke`
+  - Query contract data: `stellar contract read`
+  - Extend contract TTL: `stellar contract extend`
+- **Key Management**: 
+  - Generate identities: `stellar keys generate`
+  - Manage network configurations: `stellar network add`
+  - Fund test accounts: `stellar keys fund`
+
 **Connection Flow:**
 ```
 User Action → Wallet Kit → Wallet Extension → Stellar Network
 Transaction → Horizon API → Stellar Network → Blockchain
 Contract Call → Soroban RPC → Smart Contract → Blockchain
+Contract Build → Stellar CLI → WASM → Deploy → Network
 ```
 
 ### 3. Trustless Work Escrow Integration
@@ -206,6 +236,55 @@ Donation → Contract Invocation → Soroban RPC → Donation Contract
 NFT Mint → Contract Invocation → Soroban RPC → POD POAP Contract
 Query → Soroban RPC → Smart Contract → Return Data
 ```
+
+**Build Configuration**
+- **Rust Contracts**: Built using Stellar CLI (`stellar contract build`)
+  - **Prerequisites**: 
+    - Stellar CLI must be installed and available in PATH
+    - Rust `wasm32v1-none` target must be installed (`rustup target add wasm32v1-none`)
+  - **Build Process**:
+    - Build script checks for Stellar CLI availability: `command -v stellar`
+    - If CLI is available, runs `stellar contract build`
+    - If build fails (e.g., missing Rust target), gracefully exits with message
+    - Build continues even if Rust compilation fails (TypeScript packages still build)
+  - **Output**: 
+    - WASM files written to `target/wasm32v1-none/release/`
+    - Can be optimized with `--optimize` flag or `npm run optimize`
+- **TypeScript Contracts**: Automatically built via `transpilePackages` in Next.js config
+  - Generated bindings from contract WASM using `stellar contract bindings typescript`
+  - Packages: `pod_poap`, `donation` (local file dependencies in `contracts/packages/`)
+  - Build independently of Rust contract build status
+- **Webpack Warnings**: Suppressed for Stellar SDK's native dependencies (`sodium-native`, `require-addon`)
+  - These are expected: SDK uses native modules server-side but falls back to browser-compatible code client-side
+
+**Build Script Behavior:**
+```bash
+# contracts/package.json build script:
+command -v stellar >/dev/null 2>&1 && stellar contract build || \
+  (echo 'Stellar CLI not available, skipping Rust contract build (TypeScript packages will still build)' && exit 0)
+```
+- Checks for Stellar CLI before attempting build
+- If CLI unavailable or build fails, prints message and exits successfully (exit 0)
+- Allows build pipeline to continue with TypeScript packages
+
+**Development Workflow:**
+```
+1. Write Rust contract code → contracts/donation/ or contracts/pod-poap/
+2. Install Rust target → rustup target add wasm32v1-none
+3. Build contract → stellar contract build (or npm run build in contracts/)
+4. Generate TypeScript bindings → stellar contract bindings typescript --wasm <path> --output-dir <dir>
+5. Deploy contract → stellar contract deploy --wasm <path> --source <account> --network <network>
+6. Use bindings in app → import from "pod_poap" or "donation" packages
+```
+
+**Build Results:**
+- ✅ **Web Build**: Always succeeds (Next.js production build)
+- ✅ **TypeScript Contracts**: Always build (independent of Rust build)
+- ⚠️ **Rust Contracts**: May fail if:
+  - Stellar CLI not installed → Build continues, message displayed
+  - `wasm32v1-none` target missing → Build continues, error displayed
+  - Other Rust compilation errors → Build continues, errors displayed
+- **Overall Build**: Succeeds as long as web and TypeScript packages build successfully
 
 ## Data Flow
 
