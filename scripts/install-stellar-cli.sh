@@ -26,7 +26,7 @@ echo "Adding WASM target..."
 rustup target add wasm32v1-none
 
 echo "Installing Stellar CLI..."
-cargo install --locked stellar-cli --features opt
+cargo install --locked stellar-cli
 
 echo "Verifying Stellar CLI installation..."
 stellar --version
