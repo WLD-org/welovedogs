@@ -69,6 +69,7 @@
     "@tailwindcss/postcss": "^4.1.9",
     "tailwindcss": "^4.1.9",
     "postcss": "^8.5",
+    "tw-animate-css": "1.3.3",
     "vaul": "^0.9.9",
     "zod": "3.25.76"
   },
@@ -78,7 +79,6 @@
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.15",
     "tsx": "^4.20.6",
-    "tw-animate-css": "1.3.3",
     "typescript": "^5"
   }
 }
