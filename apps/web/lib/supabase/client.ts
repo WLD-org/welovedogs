@@ -1,34 +1,17 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseEnv } from "@/lib/supabase/env";
+import { createMockSupabaseClient } from "@/lib/supabase/mock-client";
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Support both legacy anon key and new publishable key naming
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Only log warning in development to reduce noise
     if (process.env.NODE_ENV === "development") {
       console.warn(
         "Missing Supabase environment variables. Please check your configuration. Using mock client."
       );
     }
-    // Return a mock client that won't crash the app
-    return {
-      auth: {
-        getUser: async () => ({ data: { user: null }, error: null }),
-        signOut: async () => ({ error: null }),
-      },
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            maybeSingle: async () => ({ data: null, error: null }),
-            single: async () => ({ data: null, error: null }),
-          }),
-        }),
-      }),
-    } as any;
+    return createMockSupabaseClient() as ReturnType<typeof createBrowserClient>;
   }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey);

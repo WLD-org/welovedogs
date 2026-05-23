@@ -1,12 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export async function proxy(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Support both legacy anon key and new publishable key naming
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
   // If environment variables are not set, just continue without auth check
   if (!supabaseUrl || !supabaseAnonKey) {

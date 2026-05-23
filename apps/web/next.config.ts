@@ -1,4 +1,9 @@
+import path from "path";
+import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
+
+// Load shared env from the monorepo root (.env lives outside apps/web)
+loadEnvConfig(path.resolve(__dirname, "../.."));
 
 const transpilePackages = [
   process.env.NEXT_PUBLIC_HELLO_WORLD_BINDING || "",
@@ -28,6 +33,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
       },
     ],
   },

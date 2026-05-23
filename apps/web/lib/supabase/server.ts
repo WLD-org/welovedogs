@@ -1,15 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export async function createClient() {
   const cookieStore = await cookies();
-  // Support both legacy anon key and new publishable key naming
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, supabaseAnonKey!, {
+  return createServerClient(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -35,12 +33,9 @@ export async function createClient() {
 
 // Client for use in generateStaticParams (build time) - doesn't use cookies
 export function createStaticClient() {
-  // Support both legacy anon key and new publishable key naming
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, supabaseAnonKey!);
+  return createSupabaseClient(supabaseUrl!, supabaseAnonKey!);
 }
 
 export { createClient as createServerClient };
