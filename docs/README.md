@@ -6,7 +6,7 @@ Welcome to the We Love Dogs documentation! This directory contains all project d
 
 ### Architecture
 
-- **[Architecture Documentation](./ARCHITECTURE.md)** - Complete system architecture, integrations, connections, and data flows
+- **[Architecture Documentation](./ARCHITECTURE.md)** — System architecture, integrations, data flows, and **planned Rozo + DeFindex integrations**
 
 ### Getting Started
 
@@ -24,6 +24,19 @@ All backend-related documentation is in the [`backend/`](./backend/) directory:
 - **[Database Schema](./backend/DATABASE_SCHEMA.md)** - Complete database schema documentation with table descriptions, relationships, and RLS policies
 - **[Storage Setup](./backend/STORAGE_SETUP.md)** - Guide for setting up Supabase Storage buckets
 - **[Seed Data](./backend/SEED_DATA.md)** - Documentation for seed data used in development
+
+### Stellar Ecosystem Integrations
+
+| Status | Integration | Docs |
+|--------|-------------|------|
+| Live | **Stellar Wallets Kit** — wallet connect & signing | [GitHub](https://github.com/Creit-Tech/Stellar-Wallets-Kit) |
+| Live | **Trustless Work** — escrow donations | [trustless.work](https://trustless.work/) |
+| Planned | **MoneyGram Ramps** — cash SEP-24 on/off ramp | [MoneyGram Ramps](https://developers.moneygram.com/) |
+| Planned | **Etherfuse** — MXN fiat ramps & stablebonds | [docs.etherfuse.com](https://docs.etherfuse.com/initial-setup) |
+| Planned | **Rozo** — cross-chain intent payments | [docs.rozo.ai](https://docs.rozo.ai/start/litepaper.md) |
+| Planned | **DeFindex** — campaign treasury yield | [docs.defindex.io](https://docs.defindex.io/api-integration-guide/api.md) |
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md#integrations-overview) for the full integration map and [Integration Roadmap](./ARCHITECTURE.md#integration-roadmap) for rollout phases.
 
 ### Contracts Documentation
 
@@ -48,11 +61,11 @@ docs/
     └── DONATION_CONTRACT_SETUP.md
 ```
 
-## 🚀 Quick Links
+## Quick links
 
-- **Main Project README**: [../README.md](../README.md)
-- **Backend README**: [../apps/backend/README.md](../apps/backend/README.md)
-- **Web App**: [../apps/web/README.md](../apps/web/README.md) (if exists)
+- **Main project README**: [../README.md](../README.md)
+- **Web app README**: [../apps/web/README.md](../apps/web/README.md)
+- **Seed scripts**: [../supabase/seed/](../supabase/seed/)
 
 ## 📝 Contributing to Documentation
 
@@ -71,3 +84,5 @@ When adding new documentation:
 - **Donation System**: See [DONATION_FEATURE.md](./DONATION_FEATURE.md)
 - **Storage Issues**: See [backend/STORAGE_SETUP.md](./backend/STORAGE_SETUP.md)
 - **Contract Deployment**: See [contracts/DONATION_CONTRACT_SETUP.md](./contracts/DONATION_CONTRACT_SETUP.md)
+- **Planned Integrations (Rozo, DeFindex)**: See [ARCHITECTURE.md#integration-roadmap](./ARCHITECTURE.md#integration-roadmap)
+- **Stellar Wallets Kit & Trustless Work**: See [ARCHITECTURE.md#integrations-overview](./ARCHITECTURE.md#integrations-overview)

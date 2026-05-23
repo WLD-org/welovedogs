@@ -1,439 +1,244 @@
-# We Love Dogs 🐕
+# We Love Dogs
 
-A Web3 crowdfunding platform built on Stellar blockchain to help dogs in need get the care they deserve. Care providers can create fundraising campaigns for dogs, and donors can contribute using Stellar USDC with two donation options: **Escrow** (proof-based release) or **Instant** (immediate access). All donations are transparent and tracked on-chain, with Proof of Donation (POD) NFTs as commemorative tokens.
+A transparent donations platform that connects people who want to help with the rescuers, shelters, and veterinarians saving dogs on the ground. Built on **Next.js**, **Supabase**, and the **Stellar** blockchain.
 
-## 🌟 Features
+WeLoveDogs started in **Costa Rica** and is designed to scale across Latin America — making every donation traceable, every story visible, and every hero on the front lines easier to support.
 
-### 🐕 Dog Campaigns
+## Why it exists
 
-- **Campaign Creation**: Care providers create fundraising campaigns for dogs needing medical care, surgery, food, shelter, and more
-- **Campaign Management**: Full dashboard for managing dogs, campaigns, expenses, and updates
-- **Real-time Tracking**: Track funds raised, spent, and campaign progress in real-time
-- **Campaign Updates**: Post updates with images and progress reports
-- **Expense Tracking**: Record and track expenses with proof documentation
+Millions of dogs are abandoned every year, faster than rescuers can save them. Donors want to help, but often lack visibility into where their money goes. Care providers do the hardest work with too little funding and recognition.
 
-### 💝 Stellar Donations
+WeLoveDogs closes that gap:
 
-#### Escrow Donations (Proof-Based Release)
+- **Donors** discover real dogs, read their stories, and give with confidence.
+- **Care providers** run campaigns, report expenses, and show impact.
+- **The platform** combines Web2 UX with on-chain transparency (Stellar USDC, escrow, Proof of Donation NFTs).
 
-- **Secure Escrow**: Funds held in escrow accounts via Trustless Work smart contracts
-- **Proof of Expense**: Care providers must provide proof of expense before funds are released
-- **Transparency**: All escrow transactions are tracked on-chain
-- **Multi-party Security**: Platform, dispute resolver, and release signer roles ensure fund security
+## Product experience
 
-#### Instant Donations
+### Landing page
 
-- **Immediate Access**: Funds sent directly to campaign's Stellar wallet address
-- **Quick Support**: Care providers can access funds immediately for urgent needs
-- **Simple Flow**: One-click donation with wallet connection
+The homepage tells the full story before asking for a donation:
 
-#### Donation Features
+1. **Hero** — mission, trust stats, and calls to action
+2. **The crisis** — stray-dog population data by country (animated ticker)
+3. **Bridge** — how transparent donations connect to real rescue work
+4. **Dog cards** — live campaigns you can support today
 
-- **Dual Donation Types**: Choose between escrow or instant donations per campaign
-- **USDC Support**: Donate using Stellar USDC (testnet and mainnet)
-- **On-chain Transparency**: All transactions recorded on Stellar blockchain
-- **Real-time Statistics**: Track escrow vs instant donation breakdowns
-- **Donation History**: Complete transaction history with explorer links
+### For donors
 
-### 🎖️ Proof of Donation (POD) NFTs
+- Browse and filter dogs on `/donate`
+- **Match Me** — random dog matcher for undecided donors
+- Donate via **Escrow** (funds released with expense proof) or **Instant** (direct to campaign wallet)
+- Collect **Proof of Donation (POD)** NFTs
+- Track giving history on the donor profile
 
-- **Commemorative Tokens**: Receive POD POAP NFTs as proof of your contribution
-- **NFT Gallery**: View your collection of donation NFTs
-- **Metadata Rich**: NFTs include campaign and dog information
-- **Soroban Smart Contracts**: Built on Stellar Soroban for on-chain verification
+### For care providers
 
-### 👥 Multiple User Roles
+- Register as a **rescuer**, **shelter**, or **veterinarian**
+- Create dog profiles with photos, stories, and medical status
+- Launch fundraising campaigns with goal amounts and fund categories
+- Post campaign updates and report expenses with proof
+- Optional **Trustless Work** escrow per campaign
 
-- **Care Providers**: Create and manage dog profiles, campaigns, and expenses
-- **Donors**: Browse campaigns, make donations, and collect POD NFTs
-- **Rescuers**: Profile pages showcasing rescued dogs
-- **Shelters**: Organization profiles with multiple campaigns
-- **Veterinarians**: Professional profiles with specialized care campaigns
+### Other pages
 
-### 🔐 Security & Trust
+| Route | Purpose |
+|-------|---------|
+| `/how-we-work` | How donations flow from gift to recovery |
+| `/care-providers` | Directory of heroes and organizations |
+| `/donate/[dogId]` | Individual dog campaign and donation flow |
+| `/about` | Founders and mission |
 
-- **Supabase Authentication**: Secure email/password and OAuth authentication
-- **Row Level Security**: Database-level security policies
-- **Wallet Integration**: Multiple Stellar wallet support (xBull, Freighter, WalletConnect)
-- **Smart Contract Escrow**: Trustless Work escrow contracts for secure fund management
-- **On-chain Verification**: All donations verifiable on Stellar blockchain
+## Features
 
-### 📊 Campaign Discovery
+- **Dog campaigns** — goals, categories (surgery, food, shelter, etc.), progress tracking
+- **Stellar USDC donations** — testnet and mainnet via **Stellar Wallets Kit** (Freighter, xBull, WalletConnect)
+- **Escrow donations** — **Trustless Work** smart contracts; funds released after verified expenses
+- **Cross-chain donations** *(planned)* — **Rozo** intent-based payments from any supported chain
+- **Cash fiat ramps** *(planned)* — **MoneyGram Ramps** SEP-24 cash in/out for USDC on Stellar
+- **Bank fiat ramps** *(planned)* — **Etherfuse** MXN ↔ USDC and stablebond swaps (Latin America)
+- **Treasury yield** *(planned)* — **DeFindex** vaults and/or Etherfuse stablebonds for idle campaign USDC
+- **Instant donations** — direct transfer to campaign Stellar address
+- **POD POAP NFTs** — Soroban minted commemorative tokens for donors
+- **Care provider dashboards** — dogs, campaigns, updates, expenses, wallet connection
+- **Supabase auth & storage** — profiles, images, RLS-protected data
+- **On-chain + off-chain** — blockchain for money movement; database for stories and UX
 
-- **Browse Campaigns**: Discover active campaigns on homepage
-- **Filter & Sort**: Filter by care provider type, location, urgency, funding status
-- **Campaign Cards**: Beautiful cards showing progress, images, and key information
-- **Progress Visualization**: Visual progress bars showing escrow vs instant donations
-- **Care Provider Directory**: Browse and discover care providers
-
-## 🏗️ Architecture
-
-This monorepo uses [Turborepo](https://turbo.build/repo) and contains:
+## Monorepo structure
 
 ```
 welovedogs/
 ├── apps/
-│   ├── web/          # Next.js 16 frontend with Stellar SDK
-│   └── backend/      # Supabase backend configuration
-├── contracts/        # Stellar Soroban smart contracts
-│   ├── donation/     # Donation tracking contract
-│   └── pod-poap/     # Proof of Donation NFT contract
-└── packages/         # Shared packages
-    └── tsconfig/     # Shared TypeScript configurations
+│   └── web/                 # Next.js 16 app (App Router, React 19)
+├── contracts/               # Soroban smart contracts (donation, pod-poap)
+├── packages/
+│   └── tsconfig/            # Shared TypeScript config
+├── supabase/
+│   └── seed/                # SQL seed scripts (care providers, dogs)
+└── docs/                    # Architecture, setup, and feature docs
 ```
 
-## 🚀 Quick Start
+## Quick start
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
-- [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools) (for contract development)
-- [Supabase CLI](https://supabase.com/docs/guides/cli) (for backend development)
-- Docker (for local Supabase)
+- **Node.js 22+**
+- **npm 10+**
+- [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools) (for contract work)
+- Supabase project (hosted or local CLI)
 
-### Installation
-
-1. **Clone and install dependencies:**
+### Install and run
 
 ```bash
 git clone <repository-url>
 cd welovedogs
 npm install
+
+# Configure environment (monorepo root — loaded by apps/web/next.config.ts)
+cp apps/web/.env.example .env
+# Edit .env with Supabase, Stellar, and Trustless Work values
+
+# Start the web app
+npm run dev
 ```
 
-2. **Set up the web app environment:**
+Open [http://localhost:3000](http://localhost:3000).
+
+### Seed sample data (Costa Rica)
+
+SQL seeds live in `supabase/seed/`:
+
+- `costa_rica_care_providers.sql` — shelters and rescuers
+- `costa_rica_dogs.sql` — dog profiles and active campaigns
+
+Upload dog photos to Supabase Storage:
 
 ```bash
 cd apps/web
-cp .env.local.example .env.local
-# Edit .env.local with your configuration (see Environment Variables below)
+npx tsx scripts/seed-costa-rica-dogs.ts --upload-only
 ```
 
-3. **Initialize and start Supabase:**
+Apply the dog seed migration via Supabase (Dashboard SQL editor or MCP/CLI), then verify dogs appear on `/donate`.
 
-```bash
-cd apps/backend
-npx supabase init
-npm run dev
-npm run status  # Get credentials for .env.local
-```
+## Environment variables
 
-4. **Build Soroban contracts:**
-
-```bash
-cd contracts
-npm run build
-```
-
-5. **Start the development server:**
-
-```bash
-npm run dev
-```
-
-## 📦 Apps & Packages
-
-### Web (`apps/web`)
-
-Next.js 16 application featuring:
-
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling with custom design system
-- **Supabase** client for backend services
-- **Stellar SDK** integration for blockchain operations
-- **Stellar Wallets Kit** for multi-wallet support
-- **Trustless Work** escrow integration for secure donations
-- Campaign management and donation flows
-- POD POAP NFT minting and gallery
-- Real-time updates via Supabase Realtime
-
-**Commands:**
-
-```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run start      # Start production server
-npm run lint       # Run ESLint
-```
-
-### Backend (`apps/backend`)
-
-Supabase configuration for:
-
-- **PostgreSQL** database with Row Level Security (RLS)
-- **Authentication** (email/password, OAuth)
-- **Real-time subscriptions** for campaign updates
-- **Storage buckets** for dog images and campaign media
-- **Edge Functions** for serverless operations
-
-**Commands:**
-
-```bash
-npm run dev        # Start local Supabase
-npm run stop       # Stop local Supabase
-npm run status     # Show connection details
-npm run types      # Generate TypeScript types
-```
-
-### Contracts (`contracts`)
-
-Stellar Soroban smart contracts:
-
-- **donation**: Tracks donation transactions on-chain
-- **pod-poap**: Mints Proof of Donation NFTs for donors
-
-**Commands:**
-
-```bash
-npm run build      # Build contracts
-npm run test       # Run tests
-npm run optimize   # Optimize WASM
-```
-
-## 🔧 Development
-
-### Root Commands
-
-```bash
-npm run dev        # Start all apps in development mode
-npm run build      # Build all apps
-npm run lint       # Lint all apps
-npm run format     # Format code with Prettier
-```
-
-### Git Hooks
-
-This project uses Husky for git hooks:
-
-- **pre-commit**: Runs lint-staged to lint and format staged files
-
-## 🛠️ Tech Stack
-
-### Frontend
-
-- **Next.js 16**: React framework with App Router
-- **React 19**: Latest React with concurrent features
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Accessible component primitives
-
-### Backend
-
-- **Supabase**: Backend-as-a-Service
-  - PostgreSQL database with RLS
-  - Authentication (email/password, OAuth)
-  - Real-time subscriptions
-  - Storage buckets
-  - Edge Functions
-
-### Blockchain
-
-- **Stellar Network**: Public blockchain for payments
-- **Soroban Smart Contracts**: Rust-based smart contracts
-- **Stellar SDK**: Core blockchain operations
-- **Stellar Wallets Kit**: Multi-wallet support (xBull, Freighter, WalletConnect)
-- **Trustless Work**: Escrow smart contract platform
-
-### Build & Tools
-
-- **Turborepo**: Monorepo build system
-- **npm**: Package manager
-- **ESLint & Prettier**: Code quality
-- **Husky**: Git hooks
-
-## 🌍 Environment Variables
-
-Set these in `apps/web/.env.local`:
+Create a `.env` file at the **repository root** (or `apps/web/.env.local`). The web app loads the monorepo root env automatically.
 
 ```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+# or NEXT_PUBLIC_SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
-# Stellar Network Configuration
+# Stellar
 NEXT_PUBLIC_STELLAR_NETWORK=testnet
 NEXT_PUBLIC_STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
 NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 
-# App Configuration
+# App
 NEXT_PUBLIC_APP_NAME=We Love Dogs
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Wallet Configuration
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
+# Wallets
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 
-# Contract Bindings (generated by Stellar CLI)
+# Contract bindings
 DONATION_BINDING=donation
 POD_POAP_BINDING=pod_poap
 
-# Trustless Work Escrow Configuration
-NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY=your_trustless_work_api_key
-NEXT_PUBLIC_PLATFORM_ADDRESS=your_platform_stellar_address
-NEXT_PUBLIC_DISPUTE_RESOLVER_ADDRESS=your_dispute_resolver_address
-NEXT_PUBLIC_RELEASE_SIGNER_ADDRESS=your_release_signer_address
-NEXT_PUBLIC_TRUSTLINE_ADDRESS=your_trustline_address
-NEXT_PUBLIC_TRUSTLINE_SYMBOL=USDC  # Optional, defaults to "USDC"
+# Trustless Work (escrow)
+NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY=
+NEXT_PUBLIC_PLATFORM_ADDRESS=
+NEXT_PUBLIC_DISPUTE_RESOLVER_ADDRESS=
+NEXT_PUBLIC_RELEASE_SIGNER_ADDRESS=
+NEXT_PUBLIC_TRUSTLINE_ADDRESS=
 ```
 
-## 🔐 Wallet Connection
+See [`apps/web/README.md`](./apps/web/README.md) and [`docs/GETTING_STARTED.md`](./docs/GETTING_STARTED.md) for full details.
 
-The app supports multiple Stellar wallets:
+## Scripts
 
-- **xBull Wallet**: Browser extension
-- **Freighter Wallet**: Browser extension
-- **WalletConnect**: Mobile wallet support
-- **Auto-reconnect**: Wallet selection and address persisted in localStorage
+From the repo root:
 
-## 💼 Escrow System
+```bash
+npm run dev      # Start web app (Turborepo)
+npm run build    # Production build
+npm run lint     # Lint all workspaces
+npm run format   # Prettier
+```
 
-### How Escrow Works
+From `apps/web`:
 
-1. **Campaign Creation**: Care provider creates a campaign with fundraising goal
-2. **Escrow Setup**: Campaign can optionally set up an escrow account via Trustless Work
-3. **Donor Choice**: Donors can choose between:
-   - **Escrow Donation**: Funds held securely until proof of expense
-   - **Instant Donation**: Immediate transfer to campaign wallet
-4. **Fund Release**: For escrow donations, care provider submits proof of expense
-5. **Verification**: Release signer verifies proof and releases funds
-6. **Transparency**: All transactions tracked on-chain
+```bash
+npm run dev      # Next.js dev server
+npm run build    # Production build
+npm run lint     # ESLint
+npx tsx scripts/seed-costa-rica-dogs.ts --upload-only
+```
 
-### Escrow Benefits
+From `contracts/`:
 
-- **Donor Confidence**: Funds only released after proof of expense
-- **Care Provider Trust**: Builds trust through transparency
-- **Dispute Resolution**: Built-in dispute resolution mechanism
-- **Multi-party Security**: Multiple roles ensure fund security
+```bash
+npm run build    # Build Soroban WASM
+npm run test     # Contract tests
+```
 
-## 📚 Documentation
+## Tech stack
 
-All documentation is organized in the [`docs/`](./docs/) directory. See the [Documentation Index](./docs/README.md) for a complete overview.
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui |
+| Backend | Supabase (Postgres, Auth, Storage, Realtime) |
+| Wallets | Stellar Wallets Kit (`@creit.tech/stellar-wallets-kit`) |
+| Blockchain | Stellar, Soroban, USDC |
+| Escrow | Trustless Work (`@trustless-work/escrow`) |
+| Fiat ramps *(planned)* | MoneyGram Ramps (SEP-24), Etherfuse (FX API) |
+| Payments *(planned)* | Rozo (cross-chain intents) |
+| Yield *(planned)* | DeFindex (Soroban vaults), Etherfuse stablebonds |
+| NFTs | POD POAP Soroban contract + IPFS metadata |
+| Monorepo | Turborepo, npm workspaces |
 
-### 📖 Quick Links
+## Documentation
 
-- **[Documentation Index](./docs/README.md)** - Browse all documentation
-- **[Architecture Guide](./docs/ARCHITECTURE.md)** - System architecture, integrations, and data flows
-- **[Getting Started Guide](./docs/GETTING_STARTED.md)** - Setup and development guide
+| Doc | Description |
+|-----|-------------|
+| [docs/README.md](./docs/README.md) | Documentation index |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System architecture and data flows |
+| [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md) | Developer setup guide |
+| [docs/DONATION_FEATURE.md](./docs/DONATION_FEATURE.md) | Donation system |
+| [docs/backend/DATABASE_SCHEMA.md](./docs/backend/DATABASE_SCHEMA.md) | Database schema |
+| [apps/web/README.md](./apps/web/README.md) | Web app details |
+| [apps/web/CONTRACTS_GUIDE.md](./apps/web/CONTRACTS_GUIDE.md) | Smart contract integration |
 
-### Getting Started
+## Donation flow (summary)
 
-- [Getting Started Guide](./docs/GETTING_STARTED.md) - Setup and development guide
+**Escrow:** Donor → escrow contract → care provider submits expense proof → release signer approves → funds released → optional POD NFT.
 
-### Features
+**Instant:** Donor → USDC directly to campaign Stellar address → optional POD NFT.
 
-- [Donation Feature](./docs/DONATION_FEATURE.md) - Donation system documentation
-- [Donation Tracking & Verification](./docs/DONATION_TRACKING_VERIFICATION.md) - How to verify on-chain donations
+All transactions are verifiable on the Stellar network. Campaign metadata, stories, and images live in Supabase.
 
-### Backend
+## Deployment
 
-- [Backend README](./apps/backend/README.md) - Supabase backend overview
-- [Database Schema](./docs/backend/DATABASE_SCHEMA.md) - Complete database schema documentation
-- [Storage Setup](./docs/backend/STORAGE_SETUP.md) - Storage buckets configuration
-- [Seed Data](./docs/backend/SEED_DATA.md) - Seed data documentation
+The web app deploys to **Vercel** (or any Node.js host). Required production env vars: Supabase URL/keys, Stellar network config, contract bindings, Trustless Work addresses, WalletConnect project ID.
 
-### Contracts
+```bash
+cd apps/web && npm run build
+```
 
-- [Donation Contract Setup](./docs/contracts/DONATION_CONTRACT_SETUP.md) - Donation contract deployment
-- [Contracts Guide](./apps/web/CONTRACTS_GUIDE.md) - Smart contract integration
-- [NFT Setup](./apps/web/NFT_SETUP.md) - POD POAP NFT setup
-
-## 🧩 Smart Contracts
-
-### Donation Contract
-
-Tracks donation transactions on the Stellar network, providing transparency and verifiability for all contributions.
-
-### POD POAP Contract
-
-Mints Proof of Donation NFTs as commemorative tokens for donors, built with OpenZeppelin Stellar Soroban Contracts.
-
-See `apps/web/CONTRACTS_GUIDE.md` for detailed contract integration instructions.
-
-## 🔄 Donation Flow
-
-### Escrow Donation Flow
-
-1. Donor browses campaigns and selects a dog
-2. Connects wallet via WalletMenu
-3. Chooses "Escrow" donation type
-4. Enters donation amount
-5. Signs transaction to fund escrow account
-6. Funds held in escrow until proof of expense
-7. Care provider submits expense proof
-8. Release signer verifies and releases funds
-9. Donor receives POD NFT (optional)
-
-### Instant Donation Flow
-
-1. Donor browses campaigns and selects a dog
-2. Connects wallet via WalletMenu
-3. Chooses "Instant" donation type
-4. Enters donation amount
-5. Signs transaction to send USDC directly to campaign wallet
-6. Funds immediately available to care provider
-7. Donor receives POD NFT (optional)
-
-## 🎨 UI Features
-
-- **Sticky Donation Widget**: Always-visible donation interface on campaign pages
-- **Progress Bars**: Visual progress indicators showing escrow vs instant donations
-- **Campaign Cards**: Beautiful cards with images, progress, and key stats
-- **Real-time Updates**: Live campaign updates and donation notifications
-- **Responsive Design**: Mobile-first design with Tailwind CSS
-- **Glass Morphism**: Modern UI with backdrop blur effects
-- **Gradient Branding**: Custom purple/green gradient theme
-
-## 🚢 Deployment
-
-### Build Process
-
-1. TypeScript compilation
-2. Next.js production build
-3. Contract bindings bundled
-4. Static assets optimized
-
-### Environment Variables
-
-Required for production:
-
-- Supabase URL and keys
-- Stellar network configuration (testnet/mainnet)
-- Contract IDs and bindings
-- WalletConnect project ID
-- Trustless Work API key and addresses
-
-### Hosting
-
-- Compatible with Vercel, Netlify, or any Node.js host
-- Edge runtime support for middleware
-- Static export possible for static routes
-
-## 📈 Future Enhancements
-
-- [ ] Multi-chain support
-- [ ] Advanced NFT features (rarity, collections)
-- [ ] Real-time notifications
-- [ ] Analytics dashboard for care providers
-- [ ] Mobile app (React Native)
-- [ ] Recurring donations
-- [ ] Social sharing features
-- [ ] Campaign milestones and updates
-- [ ] Donor badges and achievements
-- [ ] Care provider reputation system
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+3. Make changes and run `npm run lint`
+4. Open a pull request
 
-## 📄 License
+## License
 
 ISC
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Stellar Development Foundation](https://www.stellar.org/)
 - [Supabase](https://supabase.com/)
@@ -442,4 +247,4 @@ ISC
 
 ---
 
-**Built with ❤️ for dogs in need**
+**Built with care for dogs — and the people who rescue them.**
