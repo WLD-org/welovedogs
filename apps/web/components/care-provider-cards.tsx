@@ -15,6 +15,7 @@ import {
 import { MapPin, Heart, TrendingUp, Trophy, Star, Users } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { CareProviderCardsSkeleton } from "@/components/loading/hero-cards-skeleton";
 
 interface CareProvider {
   id: string;
@@ -261,13 +262,7 @@ export function CareProviderCards() {
   };
 
   if (loading) {
-    return (
-      <section className="relative bg-primary py-12">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-white text-lg">Loading care providers...</div>
-        </div>
-      </section>
-    );
+    return <CareProviderCardsSkeleton />;
   }
 
   return (

@@ -5,6 +5,8 @@ import { DogCard } from "@/components/dog-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { normalizeRescuedBy, filterAndSortDogs, type SortOption } from "@/lib/utils/dog-cards";
+import { DogCardsSkeleton } from "@/components/loading/hero-cards-skeleton";
+import { Reveal } from "@/components/landing/motion";
 
 interface Dog {
   id: string;
@@ -199,13 +201,7 @@ export function DogCards() {
   };
 
   if (loading) {
-    return (
-      <section className="py-12 md:py-16 bg-gradient-to-br from-purple-600 via-purple-500 to-green-600">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-white text-lg">Loading dogs...</div>
-        </div>
-      </section>
-    );
+    return <DogCardsSkeleton />;
   }
 
   if (error) {
@@ -239,32 +235,35 @@ export function DogCards() {
       }}
     >
       <div className="container mx-auto px-4">
-        <div className="mb-12 pt-12 text-center md:pt-16">
+        <Reveal className="mb-12 pt-12 text-center md:pt-16">
           <h2 className="mb-4 text-balance font-sans text-3xl font-bold text-white md:text-4xl">
-            Every dog here needs someone. One of them is waiting for you.
+            One dog at a time — starting here.
           </h2>
           <p className="text-pretty text-lg text-white/90">
-            {"Scroll slowly. Wait for the connection. When a story grabs you… that's your dog."}
+            The crisis is overwhelming. But every donation to a real dog on this page is a direct
+            act of rescue. Scroll, connect, and change one life today.
           </p>
-        </div>
+        </Reveal>
 
-        <div id="match-me-section" className="mb-8 text-center">
-          <button
-            type="button"
-            onClick={handleMatchMe}
-            disabled={isMatching}
-            className="group relative mb-2 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 px-8 py-4 text-lg font-bold text-purple-900 shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            <span className="text-2xl">🐾</span>
-            <span>Match Me With a Dog</span>
-            <span className="text-2xl">🐾</span>
-          </button>
-          <p className="text-sm text-white/90">
-            {"Choosing a dog is hard. So we let them choose you."}
-          </p>
-        </div>
+        <Reveal delayMs={200} className="mb-8 text-center" as="div">
+          <div id="match-me-section">
+            <button
+              type="button"
+              onClick={handleMatchMe}
+              disabled={isMatching}
+              className="group relative mb-2 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 px-8 py-4 text-lg font-bold text-purple-900 shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span className="text-2xl animate-wag-tail motion-reduce:animate-none">🐾</span>
+              <span>Match Me With a Dog</span>
+              <span className="text-2xl animate-wag-tail motion-reduce:animate-none">🐾</span>
+            </button>
+            <p className="text-sm text-white/90">
+              {"Choosing a dog is hard. So we let them choose you."}
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-4">
+        <Reveal delayMs={350} className="mb-8 flex flex-wrap items-center justify-center gap-4">
           <div className="flex items-center gap-2">
             <label htmlFor="requester-filter" className="text-sm font-medium text-white">
               Care Provider Type:
@@ -311,7 +310,7 @@ export function DogCards() {
               </option>
             </select>
           </div>
-        </div>
+        </Reveal>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedDogs.map((dog) => {
