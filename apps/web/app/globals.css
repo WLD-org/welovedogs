@@ -286,6 +286,27 @@
     animation: hero-enter 0.8s ease-out both;
   }
 
+  @keyframes hero-float-paw {
+    0% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.3;
+    }
+    75% {
+      opacity: 0.14;
+    }
+    100% {
+      transform: translateY(-520px) translateX(16px) rotate(18deg);
+      opacity: 0;
+    }
+  }
+
+  .animate-hero-float-paw {
+    animation: hero-float-paw ease-out infinite;
+  }
+
   @keyframes soft-pulse {
     0%,
     100% {
