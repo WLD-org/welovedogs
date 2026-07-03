@@ -314,7 +314,7 @@ export function StickyDonationWidget({
         {!address && (
           <div className="mb-2 md:mb-3 rounded-lg bg-yellow-50 border border-yellow-200 p-2.5 md:p-3">
             <p className="font-sans text-xs text-yellow-800 leading-tight">
-              Connect your Solana wallet (Phantom, Solflare) to donate
+              Connect your Solana wallet via WalletConnect to donate
             </p>
           </div>
         )}

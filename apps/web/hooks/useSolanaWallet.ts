@@ -1,23 +1,45 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import type { Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, type Transaction } from "@solana/web3.js";
+import {
+  useAppKit,
+  useAppKitAccount,
+  useAppKitProvider,
+  useDisconnect,
+} from "@reown/appkit/react";
+import {
+  useAppKitConnection,
+  type Provider,
+} from "@reown/appkit-adapter-solana/react";
+import { getSolanaConfig } from "@/lib/solana/config";
+import { ensureAppKitInitialized, getWalletConnectProjectId } from "@/lib/solana/appkit";
+
+function useRpcConnection(): Connection {
+  const { connection: appKitConnection } = useAppKitConnection();
+  return useMemo(() => {
+    if (appKitConnection) return appKitConnection;
+    const config = getSolanaConfig();
+    return new Connection(config.rpcUrl, "confirmed");
+  }, [appKitConnection]);
+}
 
 export function useSolanaWallet() {
-  const { connection } = useConnection();
-  const {
-    publicKey,
-    connected,
-    connecting,
-    disconnect,
-    signTransaction,
-    sendTransaction,
-  } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { open } = useAppKit();
+  const { address, isConnected, status } = useAppKitAccount({ namespace: "solana" });
+  const { disconnect } = useDisconnect();
+  const { walletProvider } = useAppKitProvider<Provider>("solana");
+  const connection = useRpcConnection();
 
-  const address = publicKey?.toBase58() ?? null;
+  const publicKey = useMemo(() => {
+    if (walletProvider?.publicKey) return walletProvider.publicKey;
+    if (!address) return null;
+    try {
+      return new PublicKey(address);
+    } catch {
+      return null;
+    }
+  }, [address, walletProvider]);
 
   const shortAddress = useMemo(() => {
     if (!address) return "";
@@ -26,36 +48,62 @@ export function useSolanaWallet() {
   }, [address]);
 
   const openModalAndConnect = useCallback(async () => {
-    setVisible(true);
-  }, [setVisible]);
+    if (!getWalletConnectProjectId()) {
+      throw new Error(
+        "WalletConnect is not configured. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID in your environment."
+      );
+    }
+    ensureAppKitInitialized();
+    await open({ view: "Connect", namespace: "solana" });
+  }, [open]);
 
-  const signAndSendTransaction = useCallback(
-    async (transaction: Transaction) => {
-      if (!publicKey) throw new Error("Wallet not connected");
-      if (signTransaction) {
-        const signed = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signed.serialize());
-        await connection.confirmTransaction(signature, "confirmed");
-        return signature;
+  const signTransaction = useCallback(
+    async (transaction: Transaction): Promise<Transaction> => {
+      if (!walletProvider?.publicKey) {
+        throw new Error("Wallet not connected");
       }
-      if (sendTransaction) {
-        return sendTransaction(transaction, connection);
-      }
-      throw new Error("Wallet does not support transaction signing");
+      return walletProvider.signTransaction(transaction);
     },
-    [publicKey, signTransaction, sendTransaction, connection]
+    [walletProvider]
   );
 
+  const signAndSendTransaction = useCallback(
+    async (transaction: Transaction): Promise<string> => {
+      if (!walletProvider?.publicKey) {
+        throw new Error("Wallet not connected");
+      }
+
+      if (!transaction.feePayer) {
+        transaction.feePayer = walletProvider.publicKey;
+      }
+
+      if (!transaction.recentBlockhash) {
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.lastValidBlockHeight = lastValidBlockHeight;
+      }
+
+      const signature = await walletProvider.signAndSendTransaction(transaction);
+      await connection.confirmTransaction(signature, "confirmed");
+      return signature;
+    },
+    [walletProvider, connection]
+  );
+
+  const handleDisconnect = useCallback(async () => {
+    await disconnect({ namespace: "solana" });
+  }, [disconnect]);
+
   return {
-    address,
+    address: address ?? null,
     shortAddress,
-    connected,
-    connecting,
-    isConnected: connected,
+    connected: isConnected,
+    connecting: status === "connecting" || status === "reconnecting",
+    isConnected,
     connection,
     publicKey,
     openModalAndConnect,
-    disconnect,
+    disconnect: handleDisconnect,
     signTransaction,
     signAndSendTransaction,
   };

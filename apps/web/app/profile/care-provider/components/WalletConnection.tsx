@@ -82,7 +82,7 @@ export function WalletConnection() {
       ) : (
         <div className="space-y-2">
           <p className="text-xs text-gray-600">
-            Connect your Solana wallet to save your address for campaigns
+            Connect your Solana wallet via WalletConnect to save your address for campaigns
           </p>
           <Button
             type="button"

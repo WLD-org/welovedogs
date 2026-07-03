@@ -1,13 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { PublicKey } from "@solana/web3.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { getSolanaConfig } from "@/lib/solana/config";
 
 export function useSolanaAccount(address: string | null) {
-  const { connection } = useConnection();
+  const { connection: appKitConnection } = useAppKitConnection();
+  const connection = useMemo(() => {
+    if (appKitConnection) return appKitConnection;
+    const config = getSolanaConfig();
+    return new Connection(config.rpcUrl, "confirmed");
+  }, [appKitConnection]);
+
   const [usdcBalance, setUsdcBalance] = useState<string>("0");
   const [solBalance, setSolBalance] = useState<string>("0");
   const [isLoading, setIsLoading] = useState(false);
