@@ -225,7 +225,7 @@ function DonationSuccessContent() {
 
         if (updatedDonorId) {
           // Wait for the transaction to be fully recorded and quest progress to update
-          // Increased delay to ensure escrow donations are fully processed
+          // Brief delay so /api/donation/record and quest updates can settle
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
           const supabase = createBrowserClient();
@@ -318,7 +318,7 @@ function DonationSuccessContent() {
             .order("earned_at", { ascending: false });
 
           // Always calculate stats from transactions to get the most up-to-date data
-          // This ensures escrow donations are included immediately after recording
+          // Recalculate stats from transactions for the freshest totals after recording
           if (transactions && transactions.length > 0) {
             const calculatedTotal = transactions.reduce(
               (sum: number, tx: { usd_value: number | null; dog_id: string | null }) =>

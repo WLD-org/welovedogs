@@ -6,7 +6,7 @@ Welcome to the We Love Dogs documentation! This directory contains all project d
 
 ### Architecture
 
-- **[Architecture Documentation](./ARCHITECTURE.md)** — System architecture, integrations, data flows, and **planned Rozo + DeFindex integrations**
+- **[Architecture Documentation](./ARCHITECTURE.md)** — System architecture, Solana integration, data flows, and deployment
 
 ### Getting Started
 
@@ -33,6 +33,7 @@ All backend-related documentation is in the [`backend/`](./backend/) directory:
 | POD NFTs (Metaplex) | `apps/web/lib/solana/nft.ts` |
 | WalletConnect | `apps/web/lib/solana/appkit.ts` |
 | NFT setup guide | [apps/web/NFT_SETUP.md](../apps/web/NFT_SETUP.md) |
+| Deployment checklist | [apps/web/DEPLOYMENT_CHECK.md](../apps/web/DEPLOYMENT_CHECK.md) |
 
 ## 📁 Directory Structure
 

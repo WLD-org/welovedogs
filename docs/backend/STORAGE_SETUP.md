@@ -78,7 +78,7 @@ You should see all 4 buckets listed.
 
 - Verify buckets exist: Check Supabase Dashboard > Storage
 - Ensure bucket names match exactly (case-sensitive)
-- Check that the migration was applied: `npm run migrate`
+- Check that the migration was applied: `supabase db push` or `supabase db reset` (local)
 
 ### Error: "Permission denied"
 

@@ -136,7 +136,8 @@ Client setup loads env from monorepo root and includes a dev mock when Supabase 
 | `lib/solana/nft.ts` | Metaplex POD NFT mint + fetch by owner |
 | `lib/solana/appkit.ts` | WalletConnect / Reown AppKit config |
 
-NFT setup: [`NFT_SETUP.md`](./NFT_SETUP.md).
+NFT setup: [`NFT_SETUP.md`](./NFT_SETUP.md).  
+Pre-launch checklist: [`DEPLOYMENT_CHECK.md`](./DEPLOYMENT_CHECK.md).
 
 ## API routes
 
