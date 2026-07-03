@@ -1,6 +1,6 @@
 # We Love Dogs — Web App
 
-Next.js 16 application for the WeLoveDogs donations platform: campaign discovery, Stellar USDC donations, Trustless Work escrow, Proof of Donation NFTs, and care provider dashboards.
+Next.js 16 application for the WeLoveDogs donations platform: campaign discovery, Solana USDC donations, Proof of Donation NFTs, and care provider dashboards.
 
 ## Getting started
 
@@ -47,25 +47,21 @@ Required variables (set in root `.env` or `apps/web/.env.local`):
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-NEXT_PUBLIC_STELLAR_NETWORK=testnet
-NEXT_PUBLIC_STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
-NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_USDC_MINT=
+NEXT_PUBLIC_PLATFORM_WALLET=
 
 NEXT_PUBLIC_APP_NAME=We Love Dogs
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 
-DONATION_BINDING=donation
-POD_POAP_BINDING=pod_poap
-
-NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY=
-NEXT_PUBLIC_PLATFORM_ADDRESS=
-NEXT_PUBLIC_DISPUTE_RESOLVER_ADDRESS=
-NEXT_PUBLIC_RELEASE_SIGNER_ADDRESS=
-NEXT_PUBLIC_TRUSTLINE_ADDRESS=
+POD_NFT_MINT_AUTHORITY_SECRET=
+PINATA_API_KEY=
+PINATA_SECRET_API_KEY=
 ```
 
 See [`.env.example`](./.env.example) and the [root README](../../README.md) for the full list.
@@ -74,9 +70,8 @@ See [`.env.example`](./.env.example) and the [root README](../../README.md) for 
 
 ### Donations
 
-- **Escrow** — funds held until expense proof is verified (Trustless Work)
-- **Instant** — USDC sent directly to campaign Stellar address
-- Sticky donation widget, wallet connect, on-chain recording via donation contract
+- **Direct USDC** — SPL transfers to campaign wallets (99% campaign / 1% platform fee)
+- Sticky donation widget, WalletConnect wallet connect, on-chain recording in Supabase
 
 ### Campaigns & dogs
 
@@ -86,7 +81,7 @@ See [`.env.example`](./.env.example) and the [root README](../../README.md) for 
 
 ### POD NFTs
 
-- Proof of Donation POAPs minted on Soroban after donations
+- Proof of Donation NFTs minted on Solana (Metaplex) after donations
 - Donor gallery with achievements and metadata from IPFS
 
 ### Landing & narrative
@@ -107,22 +102,22 @@ apps/web/
 │   ├── how-we-work/
 │   ├── care-providers/
 │   ├── profile/            # Donor & care provider dashboards
-│   └── api/                # Donation, POD, IPFS routes
+│   └── api/                # Donation, POD NFT, IPFS routes
 ├── components/             # UI and feature components
-├── contexts/               # Wallet, Supabase, Soroban providers
-├── hooks/                  # Donation, escrow, campaign hooks
-├── lib/                    # Supabase, contracts, utilities
+├── contexts/               # Solana wallet, Supabase providers
+├── hooks/                  # Donation, wallet, campaign hooks
+├── lib/                    # Supabase, Solana, utilities
 ├── scripts/                # Seed and IPFS upload scripts
 └── public/images/dogs/     # Local dog photo assets (also in Supabase Storage)
 ```
 
 ## Wallets
 
-[`contexts/WalletsKitContext.tsx`](./contexts/WalletsKitContext.tsx) wraps Stellar Wallets Kit:
+[`contexts/SolanaWalletContext.tsx`](./contexts/SolanaWalletContext.tsx) initializes **Reown AppKit** (WalletConnect) for Solana:
 
-- Freighter, xBull, WalletConnect, and others
-- Persists wallet selection in `localStorage`
-- Auto-reconnect on page load
+- Phantom, Solflare, and any WalletConnect-compatible Solana wallet
+- Wallet Standard auto-detection
+- Connect via navbar, donation widget, and profile pages
 
 ## Supabase
 
@@ -133,14 +128,15 @@ apps/web/
 
 Client setup loads env from monorepo root and includes a dev mock when Supabase is not configured. See [`lib/supabase/`](./lib/supabase/).
 
-## Smart contracts
+## Solana integration
 
-| Contract | Purpose |
-|----------|---------|
-| `donation` | On-chain donation recording |
-| `pod_poap` | Proof of Donation NFT minting |
+| Module | Purpose |
+|--------|---------|
+| `lib/solana/donation.ts` | USDC SPL transfer builder (99%/1% split) |
+| `lib/solana/nft.ts` | Metaplex POD NFT mint + fetch by owner |
+| `lib/solana/appkit.ts` | WalletConnect / Reown AppKit config |
 
-Integration details: [`CONTRACTS_GUIDE.md`](./CONTRACTS_GUIDE.md) and [`NFT_SETUP.md`](./NFT_SETUP.md).
+NFT setup: [`NFT_SETUP.md`](./NFT_SETUP.md).
 
 ## API routes
 
@@ -148,14 +144,14 @@ Integration details: [`CONTRACTS_GUIDE.md`](./CONTRACTS_GUIDE.md) and [`NFT_SETU
 |-------|---------|
 | `/api/donation/record` | Record donation transaction |
 | `/api/donation/stats` | Campaign donation statistics |
-| `/api/pod-poap/mint` | Mint POD NFT |
-| `/api/pod-poap/metadata` | NFT metadata |
+| `/api/nft/mint-for-donation` | Mint POD NFT after donation |
+| `/api/pod-poap/mint` | Generic POD NFT mint |
+| `/api/pod-poap/tokens/[address]` | List POD NFTs by wallet |
 | `/api/ipfs/upload-metadata` | Upload metadata to IPFS |
 
 ## Further reading
 
 - [Root README](../../README.md) — product overview and monorepo setup
-- [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — system architecture
 - [docs/backend/DATABASE_SCHEMA.md](../../docs/backend/DATABASE_SCHEMA.md) — database schema
 
 ---
