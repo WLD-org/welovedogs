@@ -78,7 +78,7 @@ export function transformDonorData(
 
 /**
  * Transforms transaction records to DonationData format
- * Includes donation type (escrow/instant) and escrow contract info
+ * Includes donation type (direct) and Solana transaction hash
  */
 export function transformDonations(transactions: Transaction[] | null): DonationData[] {
   if (!transactions) return [];

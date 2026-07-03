@@ -1,12 +1,11 @@
 {
-  "name": "stellar-startup-template",
+  "name": "welovedogs",
   "version": "1.0.0",
   "private": true,
-  "description": "Stellar startup template with Next.js, Supabase, and Soroban contracts",
+  "description": "We Love Dogs — Solana donations platform with Next.js and Supabase",
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "contracts"
+    "packages/*"
   ],
   "scripts": {
     "dev": "turbo run dev",

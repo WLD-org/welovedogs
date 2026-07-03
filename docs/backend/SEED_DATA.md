@@ -22,7 +22,7 @@ The seed data includes:
 - **Location**: San Francisco, USA
 - **Dogs Helped**: 2
 - **Rating**: 4.8
-- **Stellar Address**: `GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF` (placeholder)
+- **Solana Address**: placeholder — replace with a real devnet/mainnet pubkey for on-chain testing
 
 ### 2. Hope Animal Shelter
 
@@ -31,7 +31,7 @@ The seed data includes:
 - **Location**: Los Angeles, USA
 - **Dogs Helped**: 1
 - **Rating**: 4.9
-- **Stellar Address**: `GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB` (placeholder)
+- **Solana Address**: placeholder — replace with a real devnet/mainnet pubkey for on-chain testing
 
 ### 3. Dr. Michael Chen (Veterinarian)
 
@@ -40,7 +40,7 @@ The seed data includes:
 - **Location**: New York, USA
 - **Dogs Helped**: 1
 - **Rating**: 5.0
-- **Stellar Address**: `GCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC` (placeholder)
+- **Solana Address**: placeholder — replace with a real devnet/mainnet pubkey for on-chain testing
 
 ## Dogs
 
@@ -129,27 +129,25 @@ The seed data includes:
 2. Link the care providers to real auth user IDs
 3. Or use the application's registration flow to create real users
 
-⚠️ **Stellar Addresses**: The Stellar addresses in the seed data are placeholders. Replace them with real Stellar addresses when testing with actual blockchain transactions.
+⚠️ **Solana addresses**: Seed data may use placeholders. Set real `solana_address` values on care providers and campaigns before testing donations on devnet or mainnet.
 
 ⚠️ **Images**: The image URLs use Unsplash placeholder images. Replace with actual image URLs or upload images to Supabase Storage.
 
 ## Resetting Seed Data
 
-To reset and re-seed the database:
+To reset and re-seed a **local** Supabase instance:
 
 ```bash
-cd apps/backend
-npm run reset
+# From repo root
+supabase db reset
 ```
 
-This will reset the database and re-run all migrations including the seed data.
+This reapplies migrations and runs seed SQL under `supabase/seed/`.
+
+For a **remote** project, run the seed files manually in the Supabase SQL editor or via `supabase db push` after adding migrations.
 
 ## Adding More Seed Data
 
-To add more seed data, you can:
-
-1. Create a new migration: `npx supabase migration new add_more_seed_data`
-2. Add INSERT statements to the migration file
-3. Apply the migration: `npm run migrate`
-
-Or modify the existing `seed_initial_data` migration file and reset the database.
+1. Add SQL under `supabase/seed/` or create a new migration: `supabase migration new add_more_seed_data`
+2. Add `INSERT` statements to the migration or seed file
+3. Apply locally with `supabase db reset`, or push to remote with `supabase db push`

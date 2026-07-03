@@ -1,181 +1,109 @@
-# How to Verify On-Chain Donation Tracking
+# Donation Tracking & Verification
 
-This guide explains how to verify that donations are being tracked on-chain using the Soroban smart contract.
+How to verify **Solana USDC donations** and troubleshoot recording issues.
 
-## Quick Verification Methods
+## Source of truth
 
-### 1. **Visual Verification in UI**
+| Data | Source of truth | App cache |
+|------|-----------------|-----------|
+| USDC transfer amounts | Solana transaction | `transactions.usd_value` |
+| Transaction ID | Solana signature (`tx_hash`) | `transactions.tx_hash` |
+| Donor wallet | On-chain signer | `transactions.donor_address` |
+| Campaign recipient | Transfer instructions | `campaigns.solana_address` |
 
-The donation stats component is automatically displayed on the homepage if `NEXT_PUBLIC_DEFAULT_DONATION_RECIPIENT` is set. It shows:
+Supabase `transactions` is an **index for the UI**. Always verify on Solana Explorer.
 
-- Total number of donations tracked
-- Total amount donated to the recipient
-- Recent donations with donor addresses, amounts, and memos
+## Verify a donation
 
-**To check:**
+### 1. Get the transaction signature
 
-1. Make a donation using the "💝 Donar USDC" button
-2. Scroll down to see the "Donation Tracking" section
-3. Click "Refresh" to update the stats
-4. Verify your donation appears in the list
+From the donation success page, donor profile, or Supabase `transactions.tx_hash`.
 
-### 2. **API Endpoint Verification**
+### 2. Open Solana Explorer
 
-Query the donation stats API directly:
-
-```bash
-# Get total donations and recipient stats
-curl "http://localhost:3000/api/donation/stats?recipient=GASUYFRZKQHWO57WUFXPU6BTR45IL2AELIXYXM5G7C5HTBEV73MZMOTT"
-
-# Get donations from a specific donor
-curl "http://localhost:3000/api/donation/stats?donor=GARD33XQ2ZPZLI3H7ORNLKCYIK5AABG7G6S..."
-
-# Get a specific donation by ID
-curl "http://localhost:3000/api/donation/stats?donationId=0"
+```
+Devnet:  https://explorer.solana.com/tx/{SIGNATURE}?cluster=devnet
+Mainnet: https://explorer.solana.com/tx/{SIGNATURE}
 ```
 
-### 3. **Check Browser Console**
+Or use `getTransactionExplorerUrl()` from `lib/utils/solana-explorer.ts`.
 
-After making a donation, check the browser console for:
+### 3. Confirm transfer instructions
 
-- Success messages showing the transaction hash
-- Any errors related to contract invocation
-- Logs from the donation API route
+A valid donation transaction should include:
 
-### 4. **Check Server Logs**
+1. **Create ATA** (idempotent) for campaign USDC account — if needed
+2. **Create ATA** (idempotent) for platform USDC account — if needed
+3. **Transfer** ~99% USDC to campaign ATA
+4. **Transfer** ~1% USDC to platform ATA
 
-The API route logs contract errors. Check your terminal/console for:
+Token mint should match `NEXT_PUBLIC_USDC_MINT`.
 
-- `"Contract recording skipped:"` - This means the contract wasn't invoked (bindings missing or contract not deployed)
-- Transaction hashes from successful donations
-- Any error messages from the Soroban RPC
+### 4. Confirm Supabase record
 
-### 5. **Verify Contract is Deployed**
-
-Ensure the contract is deployed and configured:
-
-```bash
-# Check if contract ID is set
-echo $DONATION_CONTRACT_ID
-
-# Verify contract bindings are installed
-ls contracts/packages/donation/src/index.ts
-
-# Test contract query directly using Stellar CLI
-stellar contract invoke \
-  --id YOUR_CONTRACT_ID \
-  --network testnet \
-  -- donation_count
+```sql
+SELECT id, tx_hash, usd_value, donation_type, donor_address, explorer_url
+FROM transactions
+WHERE tx_hash = '<SIGNATURE>';
 ```
 
-### 6. **Check Transaction Details**
+`donation_type` should be `direct`. Duplicate `tx_hash` inserts are rejected by the API.
 
-When a donation is made, the transaction includes:
+## Checklist
 
-1. **Payment Operation**: The USDC transfer from donor to recipient
-2. **Contract Invocation Operation**: The `donate` function call to record the donation on-chain
+- [ ] Wallet connected before donating
+- [ ] Campaign has `solana_address` set
+- [ ] `NEXT_PUBLIC_PLATFORM_WALLET` configured
+- [ ] Donor has sufficient USDC (+ SOL for fees)
+- [ ] Transaction confirmed on Solana Explorer
+- [ ] Row exists in `transactions` with matching `tx_hash`
+- [ ] Explorer URL opens correctly for the active network
 
-**To verify:**
+## Common issues
 
-1. Get the transaction hash from the success message
-2. View it on Stellar Explorer: `https://stellar.expert/explorer/testnet/tx/YOUR_TX_HASH`
-3. Check that the transaction has multiple operations:
-   - One `Payment` operation
-   - One `Invoke Host Function` operation (the contract call)
+### Donation succeeded on-chain but not in database
 
-### 7. **Common Issues and Solutions**
+1. Check `/donation-success` page — recording runs after wallet confirmation
+2. Inspect browser network tab for `POST /api/donation/record` errors
+3. Confirm user is authenticated if `donorId` is required
+4. Manually insert only after verifying on-chain (normally automatic)
 
-#### Issue: "Donation contract bindings not available"
+### Wrong network
 
-**Solution:**
+`NEXT_PUBLIC_SOLANA_NETWORK` must match the wallet's cluster. A devnet signature will not appear on mainnet Explorer.
 
-- Ensure `DONATION_CONTRACT_ID` is set in your `.env` file
-- Verify contract bindings are installed: `npm install` in `contracts/packages/donation`
-- Check that the contract package is linked in `apps/web/package.json`
+### USDC balance shows zero
 
-#### Issue: Stats show 0 donations
+The donor may hold USDC in a different token account. The app uses the standard ATA for `NEXT_PUBLIC_USDC_MINT`.
 
-**Possible causes:**
+### Platform fee missing
 
-- Contract wasn't initialized (run `initialize()` once)
-- Donations were made before contract was deployed
-- Contract ID mismatch between deployment and configuration
+Verify `NEXT_PUBLIC_PLATFORM_WALLET` is set. Without it, `buildDonationTransaction()` throws before signing.
 
-**Solution:**
+## NFT verification
 
-- Initialize the contract: `stellar contract invoke --id YOUR_CONTRACT_ID -- initialize`
-- Verify `DONATION_CONTRACT_ID` matches the deployed contract
+After minting a POD NFT:
 
-#### Issue: Contract operations not appearing in transactions
+1. **Mint address** stored in `donor_achievements.nft_token_id`
+2. View NFT: `https://explorer.solana.com/address/{MINT}?cluster=devnet`
+3. Mint tx: `donor_achievements.blockchain_tx_hash`
+4. On-chain list: `GET /api/pod-poap/tokens/{walletAddress}`
 
-**Possible causes:**
+## RPC debugging
 
-- Contract bindings not loaded (check server logs)
-- Contract invocation failed silently
-- Transaction building failed before contract operation was added
-
-**Solution:**
-
-- Check server logs for "Contract recording skipped" messages
-- Verify contract bindings are available: `curl http://localhost:3000/api/donation/stats`
-- Ensure Soroban RPC URL is correct: `NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL`
-
-## Expected Behavior
-
-When everything is working correctly:
-
-1. **Making a donation:**
-   - User clicks "💝 Donar USDC"
-   - Enters amount and optional memo
-   - Signs transaction with wallet
-   - Transaction includes both payment AND contract invocation
-   - Success message shows transaction hash
-
-2. **Viewing stats:**
-   - Stats component loads automatically
-   - Shows total donations count
-   - Shows total amount donated
-   - Lists recent donations with details
-   - Refresh button updates the data
-
-3. **API responses:**
-   - `/api/donation/stats` returns `{ ok: true, totalDonations: N, ... }`
-   - Includes `recipientTotal` with formatted amounts
-   - Includes `recipientDonations` array with donation records
-
-## Testing Checklist
-
-- [ ] Contract is deployed and `DONATION_CONTRACT_ID` is set
-- [ ] Contract bindings are installed (`contracts/packages/donation`)
-- [ ] Contract is initialized (`initialize()` called once)
-- [ ] `NEXT_PUBLIC_DEFAULT_DONATION_RECIPIENT` is set
-- [ ] Make a test donation
-- [ ] Check transaction hash on Stellar Explorer (should have 2 operations)
-- [ ] Verify stats component shows the donation
-- [ ] Query API endpoint directly to verify data
-- [ ] Check server logs for any errors
-
-## Debugging Commands
+If transactions fail to confirm:
 
 ```bash
-# Check contract state
-stellar contract invoke \
-  --id $DONATION_CONTRACT_ID \
-  --network testnet \
-  -- donation_count
-
-# Get total donated to recipient
-stellar contract invoke \
-  --id $DONATION_CONTRACT_ID \
-  --network testnet \
-  -- total_donated \
-  --recipient GASUYFRZKQHWO57WUFXPU6BTR45IL2AELIXYXM5G7C5HTBEV73MZMOTT
-
-# Get recent donations for recipient
-stellar contract invoke \
-  --id $DONATION_CONTRACT_ID \
-  --network testnet \
-  -- get_recipient_donations \
-  --recipient GASUYFRZKQHWO57WUFXPU6BTR45IL2AELIXYXM5G7C5HTBEV73MZMOTT \
-  --limit 10
+# Check RPC health
+curl -X POST $NEXT_PUBLIC_SOLANA_RPC_URL \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}'
 ```
+
+Consider a dedicated RPC provider (Helius, QuickNode) for production.
+
+## Related docs
+
+- [Donation Feature](./DONATION_FEATURE.md)
+- [Architecture](./ARCHITECTURE.md)
+- [NFT Setup](../apps/web/NFT_SETUP.md)

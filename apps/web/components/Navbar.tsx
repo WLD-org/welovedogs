@@ -37,12 +37,6 @@ export function Navbar() {
             Home
           </a>
           <a
-            href="/contracts-inspector"
-            className="rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            Contracts
-          </a>
-          <a
             href={explorerHref}
             target="_blank"
             rel="noreferrer"

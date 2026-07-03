@@ -4,7 +4,7 @@
  * Data Sources:
  * 1. Supabase Database:
  *    - Donor profile data (donors table)
- *    - Donation transactions (transactions table) - includes both escrow and instant donations
+ *    - Donation transactions (transactions table)
  *    - Quest definitions (quests table)
  *    - Quest progress (donor_quest_progress table)
  *    - NFT achievements (donor_achievements table)
@@ -18,7 +18,7 @@
  *    - Total donated amount (sum of transaction.usd_value)
  *    - Donation count (count of transactions)
  *    - Donor level (calculated from stats vs donor_levels requirements)
- *    - Escrow vs Instant breakdown (from transaction.donation_type)
+ *    - Direct donation history (from transactions with on-chain tx_hash)
  */
 
 import { createServerClient } from "@/lib/supabase/server";
@@ -31,7 +31,7 @@ import {
   calculateDonorLevel,
 } from "./utils/donor-level";
 import { transformDonorData, transformDonations } from "./utils/donor-data";
-import { getPodNftMintAuthority } from "./utils/contract-id";
+import { getPodNftMintAuthority } from "./utils/mint-authority";
 
 export default async function DonorProfilePage() {
   const supabase = await createServerClient();
@@ -63,8 +63,7 @@ export default async function DonorProfilePage() {
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  // Fetch all donation transactions from Supabase (includes both instant and escrow)
-  // This includes: donation_type (escrow/instant), usd_value, tx_hash, escrow_contract_id, etc.
+  // Fetch donation transactions from Supabase
   const { data: transactions } = donor
     ? await supabase
         .from("transactions")
@@ -121,8 +120,7 @@ export default async function DonorProfilePage() {
     .select("*")
     .order("min_total_donated", { ascending: true });
 
-  // Calculate donor stats from Supabase transactions (includes both escrow and instant donations)
-  // Stats are calculated from database transactions, not from blockchain balances
+  // Calculate donor stats from Supabase transactions
   const totalDonatedAmount = calculateTotalDonated(transactions);
   const donationCount = calculateDonationCount(transactions);
 

@@ -53,7 +53,7 @@ NEXT_PUBLIC_IPFS_GATEWAY=https://gateway.pinata.cloud/ipfs
 
 ```bash
 cd apps/web
-npm run upload-pod-images
+bun run upload-pod-images
 ```
 
 This uploads all 17 POD images to IPFS and saves hashes to `lib/utils/pod-ipfs-mapping.json`, making minting faster.

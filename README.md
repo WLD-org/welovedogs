@@ -1,6 +1,6 @@
 # We Love Dogs
 
-A transparent donations platform that connects people who want to help with the rescuers, shelters, and veterinarians saving dogs on the ground. Built on **Next.js**, **Supabase**, and the **Stellar** blockchain.
+A transparent donations platform that connects people who want to help with the rescuers, shelters, and veterinarians saving dogs on the ground. Built on **Next.js**, **Supabase**, and **Solana**.
 
 WeLoveDogs started in **Costa Rica** and is designed to scale across Latin America — making every donation traceable, every story visible, and every hero on the front lines easier to support.
 
@@ -12,7 +12,7 @@ WeLoveDogs closes that gap:
 
 - **Donors** discover real dogs, read their stories, and give with confidence.
 - **Care providers** run campaigns, report expenses, and show impact.
-- **The platform** combines Web2 UX with on-chain transparency (Stellar USDC, escrow, Proof of Donation NFTs).
+- **The platform** combines Web2 UX with on-chain transparency (Solana USDC, Proof of Donation NFTs).
 
 ## Product experience
 
@@ -29,8 +29,8 @@ The homepage tells the full story before asking for a donation:
 
 - Browse and filter dogs on `/donate`
 - **Match Me** — random dog matcher for undecided donors
-- Donate via **Escrow** (funds released with expense proof) or **Instant** (direct to campaign wallet)
-- Collect **Proof of Donation (POD)** NFTs
+- Donate USDC directly to campaign wallets (99% campaign / 1% platform fee)
+- Collect **Proof of Donation (POD)** NFTs on Solana
 - Track giving history on the donor profile
 
 ### For care providers
@@ -39,7 +39,7 @@ The homepage tells the full story before asking for a donation:
 - Create dog profiles with photos, stories, and medical status
 - Launch fundraising campaigns with goal amounts and fund categories
 - Post campaign updates and report expenses with proof
-- Optional **Trustless Work** escrow per campaign
+- Connect a Solana wallet to receive donations
 
 ### Other pages
 
@@ -53,14 +53,9 @@ The homepage tells the full story before asking for a donation:
 ## Features
 
 - **Dog campaigns** — goals, categories (surgery, food, shelter, etc.), progress tracking
-- **Stellar USDC donations** — testnet and mainnet via **Stellar Wallets Kit** (Freighter, xBull, WalletConnect)
-- **Escrow donations** — **Trustless Work** smart contracts; funds released after verified expenses
-- **Cross-chain donations** *(planned)* — **Rozo** intent-based payments from any supported chain
-- **Cash fiat ramps** *(planned)* — **MoneyGram Ramps** SEP-24 cash in/out for USDC on Stellar
-- **Bank fiat ramps** *(planned)* — **Etherfuse** MXN ↔ USDC and stablebond swaps (Latin America)
-- **Treasury yield** *(planned)* — **DeFindex** vaults and/or Etherfuse stablebonds for idle campaign USDC
-- **Instant donations** — direct transfer to campaign Stellar address
-- **POD POAP NFTs** — Soroban minted commemorative tokens for donors
+- **Solana USDC donations** — devnet and mainnet via **WalletConnect / Reown AppKit**
+- **Direct donations** — USDC SPL transfers to campaign wallets with a 1% platform commission
+- **POD NFTs** — Metaplex commemorative tokens for donors (IPFS metadata)
 - **Care provider dashboards** — dogs, campaigns, updates, expenses, wallet connection
 - **Supabase auth & storage** — profiles, images, RLS-protected data
 - **On-chain + off-chain** — blockchain for money movement; database for stories and UX
@@ -71,7 +66,6 @@ The homepage tells the full story before asking for a donation:
 welovedogs/
 ├── apps/
 │   └── web/                 # Next.js 16 app (App Router, React 19)
-├── contracts/               # Soroban smart contracts (donation, pod-poap)
 ├── packages/
 │   └── tsconfig/            # Shared TypeScript config
 ├── supabase/
@@ -127,34 +121,28 @@ Create a `.env` file at the **repository root** (or `apps/web/.env.local`). The 
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-# or NEXT_PUBLIC_SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-# Stellar
-NEXT_PUBLIC_STELLAR_NETWORK=testnet
-NEXT_PUBLIC_STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
-NEXT_PUBLIC_STELLAR_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+# Solana
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_USDC_MINT=
+NEXT_PUBLIC_PLATFORM_WALLET=
 
 # App
 NEXT_PUBLIC_APP_NAME=We Love Dogs
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Wallets
+# Wallets (WalletConnect / Reown AppKit)
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 
-# Contract bindings
-DONATION_BINDING=donation
-POD_POAP_BINDING=pod_poap
-
-# Trustless Work (escrow)
-NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY=
-NEXT_PUBLIC_PLATFORM_ADDRESS=
-NEXT_PUBLIC_DISPUTE_RESOLVER_ADDRESS=
-NEXT_PUBLIC_RELEASE_SIGNER_ADDRESS=
-NEXT_PUBLIC_TRUSTLINE_ADDRESS=
+# NFT minting (server-side)
+POD_NFT_MINT_AUTHORITY_SECRET=
+PINATA_API_KEY=
+PINATA_SECRET_API_KEY=
 ```
 
-See [`apps/web/README.md`](./apps/web/README.md) and [`docs/GETTING_STARTED.md`](./docs/GETTING_STARTED.md) for full details.
+See [`apps/web/README.md`](./apps/web/README.md) and [`apps/web/.env.example`](./apps/web/.env.example) for the full list.
 
 ## Scripts
 
@@ -176,26 +164,15 @@ bun run lint     # ESLint
 bun scripts/seed-costa-rica-dogs.ts --upload-only
 ```
 
-From `contracts/`:
-
-```bash
-npm run build    # Build Soroban WASM
-npm run test     # Contract tests
-```
-
 ## Tech stack
 
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui |
 | Backend | Supabase (Postgres, Auth, Storage, Realtime) |
-| Wallets | Stellar Wallets Kit (`@creit.tech/stellar-wallets-kit`) |
-| Blockchain | Stellar, Soroban, USDC |
-| Escrow | Trustless Work (`@trustless-work/escrow`) |
-| Fiat ramps *(planned)* | MoneyGram Ramps (SEP-24), Etherfuse (FX API) |
-| Payments *(planned)* | Rozo (cross-chain intents) |
-| Yield *(planned)* | DeFindex (Soroban vaults), Etherfuse stablebonds |
-| NFTs | POD POAP Soroban contract + IPFS metadata |
+| Wallets | Reown AppKit / WalletConnect (Solana) |
+| Blockchain | Solana, USDC SPL |
+| NFTs | Metaplex Token Metadata + IPFS (Pinata) |
 | Monorepo | Turborepo, Bun workspaces |
 
 ## Documentation
@@ -203,24 +180,21 @@ npm run test     # Contract tests
 | Doc | Description |
 |-----|-------------|
 | [docs/README.md](./docs/README.md) | Documentation index |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System architecture and data flows |
 | [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md) | Developer setup guide |
 | [docs/DONATION_FEATURE.md](./docs/DONATION_FEATURE.md) | Donation system |
 | [docs/backend/DATABASE_SCHEMA.md](./docs/backend/DATABASE_SCHEMA.md) | Database schema |
 | [apps/web/README.md](./apps/web/README.md) | Web app details |
-| [apps/web/CONTRACTS_GUIDE.md](./apps/web/CONTRACTS_GUIDE.md) | Smart contract integration |
+| [apps/web/NFT_SETUP.md](./apps/web/NFT_SETUP.md) | POD NFT setup on Solana |
 
 ## Donation flow (summary)
 
-**Escrow:** Donor → escrow contract → care provider submits expense proof → release signer approves → funds released → optional POD NFT.
+Donor connects wallet → USDC transfer (99% campaign / 1% platform) → transaction recorded in Supabase → optional POD NFT mint on Solana.
 
-**Instant:** Donor → USDC directly to campaign Stellar address → optional POD NFT.
-
-All transactions are verifiable on the Stellar network. Campaign metadata, stories, and images live in Supabase.
+All transactions are verifiable on Solana Explorer. Campaign metadata, stories, and images live in Supabase.
 
 ## Deployment
 
-The web app deploys to **Vercel** (or any Node.js host). Required production env vars: Supabase URL/keys, Stellar network config, contract bindings, Trustless Work addresses, WalletConnect project ID.
+The web app deploys to **Vercel** (or any Node.js host). Required production env vars: Supabase URL/keys, Solana RPC/network, platform wallet, WalletConnect project ID.
 
 ```bash
 cd apps/web && bun run build
@@ -239,10 +213,9 @@ ISC
 
 ## Acknowledgments
 
-- [Stellar Development Foundation](https://www.stellar.org/)
+- [Solana](https://solana.com/)
 - [Supabase](https://supabase.com/)
-- [Trustless Work](https://trustless.work/)
-- [OpenZeppelin Stellar Contracts](https://github.com/OpenZeppelin/stellar-contracts)
+- [Reown / WalletConnect](https://reown.com/)
 
 ---
 
