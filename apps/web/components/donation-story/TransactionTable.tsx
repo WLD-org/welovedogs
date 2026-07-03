@@ -64,17 +64,10 @@ export function TransactionTable({
             <tr key={`${tx.txHash}-${index}`} className="border-t hover:bg-muted/50">
               <td className="px-4 py-3 text-sm text-foreground">{tx.date}</td>
               <td className="px-4 py-3 text-sm">
-                {tx.type === "escrow" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">
-                    <Shield className="h-3 w-3" />
-                    Escrow
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                    <Zap className="h-3 w-3" />
-                    Instant
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                  <Zap className="h-3 w-3" />
+                  Direct
+                </span>
               </td>
               <td className="px-4 py-3 text-sm text-foreground">
                 {tx.cryptoAmount} {tx.tokenSymbol}

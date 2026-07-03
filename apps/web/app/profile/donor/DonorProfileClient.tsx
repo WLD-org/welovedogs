@@ -38,7 +38,7 @@ interface DonorData {
   country: string;
   phone?: string;
   profilePicture?: string;
-  stellarAddress?: string;
+  solanaAddress?: string;
   memberSince: string;
   totalDonations: number;
   dogsSupported: number;
@@ -51,8 +51,7 @@ interface Donation {
   amount: number;
   date: string;
   transactionHash: string;
-  donationType?: "escrow" | "instant";
-  escrowContractId?: string | null;
+  donationType?: "direct";
   campaignId?: string | null;
 }
 
@@ -114,13 +113,13 @@ export default function DonorProfileClient({
   const [donorData, setDonorData] = useState({
     ...initialDonorData,
     phone: initialDonorData.phone || "",
-    stellarAddress: initialDonorData.stellarAddress || "",
+    solanaAddress: initialDonorData.solanaAddress || "",
     profilePicture: initialDonorData.profilePicture || "",
   });
   const [editFormData, setEditFormData] = useState({
     ...initialDonorData,
     phone: initialDonorData.phone || "",
-    stellarAddress: initialDonorData.stellarAddress || "",
+    solanaAddress: initialDonorData.solanaAddress || "",
     profilePicture: initialDonorData.profilePicture || "",
   });
   const [profilePicture, setProfilePicture] = useState<string | null>(
@@ -343,12 +342,12 @@ export default function DonorProfileClient({
                         />
                       </div>
                       <div>
-                        <Label htmlFor="stellarAddress">Stellar Address (Optional)</Label>
+                        <Label htmlFor="solanaAddress">Solana Address (Optional)</Label>
                         <Input
-                          id="stellarAddress"
-                          value={editFormData.stellarAddress}
+                          id="solanaAddress"
+                          value={editFormData.solanaAddress}
                           onChange={(e) =>
-                            setEditFormData({ ...editFormData, stellarAddress: e.target.value })
+                            setEditFormData({ ...editFormData, solanaAddress: e.target.value })
                           }
                           placeholder="GXXXXX..."
                         />
@@ -392,11 +391,11 @@ export default function DonorProfileClient({
                           {donorData.country}
                         </p>
                       </div>
-                      {donorData.stellarAddress && (
+                      {donorData.solanaAddress && (
                         <div>
-                          <p className="text-sm text-gray-600 mb-1">Stellar Address</p>
+                          <p className="text-sm text-gray-600 mb-1">Solana Address</p>
                           <p className="text-base font-mono text-sm text-gray-800 break-all">
-                            {donorData.stellarAddress}
+                            {donorData.solanaAddress}
                           </p>
                         </div>
                       )}
@@ -721,7 +720,7 @@ export default function DonorProfileClient({
                               <a
                                 href={
                                   donation.transactionHash
-                                    ? `https://stellar.expert/explorer/${process.env.NEXT_PUBLIC_STELLAR_NETWORK === "public" ? "public" : "testnet"}/tx/${donation.transactionHash}`
+                                    ? `https://explorer.solana.com/tx/${donation.transactionHash}?cluster=${process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}`
                                     : "#"
                                 }
                                 target="_blank"

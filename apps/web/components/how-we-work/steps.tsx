@@ -12,7 +12,7 @@ const steps = [
     icon: Heart,
     title: "Donate with confidence",
     description:
-      "Give instantly or through escrow. Your contribution goes directly toward medical care, food, and shelter for that dog.",
+      "Give instantly on Solana. Your contribution goes directly toward medical care, food, and shelter for that dog.",
     accent: "from-purple-500 to-fuchsia-500",
   },
   {

@@ -50,8 +50,8 @@ export default async function DonatePage({ params }: { params: Promise<{ dogId: 
                 spent={transformedDog.spent || 0}
                 fundsNeededFor={transformedDog.fundsNeededFor}
                 campaignId={activeCampaign?.id}
-                careProviderAddress={dog.care_provider?.stellar_address || undefined}
-                campaignStellarAddress={activeCampaign?.stellar_address || undefined}
+                careProviderAddress={dog.care_provider?.solana_address || undefined}
+                campaignSolanaAddress={activeCampaign?.solana_address || undefined}
                 goal={activeCampaign ? Number(activeCampaign.goal) || 0 : 0}
               />
             </div>
@@ -64,8 +64,8 @@ export default async function DonatePage({ params }: { params: Promise<{ dogId: 
               spent={transformedDog.spent || 0}
               fundsNeededFor={transformedDog.fundsNeededFor}
               campaignId={activeCampaign?.id}
-              careProviderAddress={dog.care_provider?.stellar_address || undefined}
-              campaignStellarAddress={activeCampaign?.stellar_address || undefined}
+              careProviderAddress={dog.care_provider?.solana_address || undefined}
+              campaignSolanaAddress={activeCampaign?.solana_address || undefined}
               goal={activeCampaign ? Number(activeCampaign.goal) || 0 : 0}
             />
           </div>

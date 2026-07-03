@@ -226,7 +226,7 @@ export default function DonorRegistrationPage() {
     lastName: "",
     phone: "",
     country: "",
-    stellarAddress: "",
+    solanaAddress: "",
     profilePhoto: null as File | null, // Add profile photo field
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -335,7 +335,7 @@ export default function DonorRegistrationPage() {
         email: userEmail,
         phone: formData.phone || null,
         country: formData.country || null,
-        stellar_address: formData.stellarAddress || null,
+        solana_address: formData.solanaAddress || null,
         profile_picture: profilePhotoUrl, // Store the Supabase Storage URL
         profile_complete: true,
         dogs_supported: 0,
@@ -561,19 +561,19 @@ export default function DonorRegistrationPage() {
                   </h3>
 
                   <div className="space-y-1.5 md:space-y-2">
-                    <Label htmlFor="stellarAddress" className="text-gray-700 text-sm md:text-base">
-                      Stellar Wallet Address
+                    <Label htmlFor="solanaAddress" className="text-gray-700 text-sm md:text-base">
+                      Solana Wallet Address
                     </Label>
                     <p className="text-xs md:text-sm text-gray-500 mb-2">
-                      Add your Stellar wallet address to receive donation receipts on the blockchain
+                      Add your Solana wallet address to receive donation receipts on the blockchain
                     </p>
                     <div className="relative">
                       <Wallet className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                       <Input
-                        id="stellarAddress"
-                        placeholder="G... (Stellar address)"
-                        value={formData.stellarAddress}
-                        onChange={(e) => handleChange("stellarAddress", e.target.value)}
+                        id="solanaAddress"
+                        placeholder="Base58 Solana address"
+                        value={formData.solanaAddress}
+                        onChange={(e) => handleChange("solanaAddress", e.target.value)}
                         className="pl-10 h-10 md:h-11 text-sm md:text-base font-mono"
                       />
                     </div>

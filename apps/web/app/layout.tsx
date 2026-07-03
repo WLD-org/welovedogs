@@ -24,7 +24,7 @@ const _sourceSerif_4 = V0_Font_Source_Serif_4({
 
 export const metadata: Metadata = {
   title: "WeLoveDogs",
-  description: "Crowdfunding platform on the Stellar blockchain to save dogs",
+  description: "Crowdfunding platform on Solana to save dogs",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

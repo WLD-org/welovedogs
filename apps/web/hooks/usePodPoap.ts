@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useWalletsKitContext } from "@/contexts/WalletsKitContext";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 
 export type PodToken = {
   tokenId: number;
@@ -42,91 +42,52 @@ async function fetchJson<T>(input: RequestInfo, init?: RequestInit) {
 }
 
 export function usePodPoap() {
-  const { refreshAddress } = useWalletsKitContext();
-  const [address, setAddress] = useState<string | null>(null);
+  const { address } = useSolanaWallet();
   const [metadata, setMetadata] = useState<PodMetadata | null>(null);
   const [tokens, setTokens] = useState<PodToken[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const ensureAddress = useCallback(async () => {
-    const current = await refreshAddress();
-    if (!current) {
-      throw new Error("Connecta una wallet para continuar.");
+    if (!address) {
+      throw new Error("Connect a wallet to continue.");
     }
-    setAddress(current);
-    return current;
-  }, [refreshAddress]);
+    return address;
+  }, [address]);
 
-  const loadMetadata = useCallback(async () => {
-    const data = await fetchJson<PodMetadata>("/api/pod-poap/metadata");
-    setMetadata({
-      name: data.name,
-      symbol: data.symbol,
-      totalSupply: data.totalSupply,
-    });
-  }, []);
-
-  const loadTokens = useCallback(async () => {
-    const current = await ensureAddress();
-    const data = await fetchJson<{
-      tokens: PodToken[];
-      balance: number;
-    }>(`/api/pod-poap/tokens/${current}`);
-    setTokens(
-      Array.isArray(data.tokens)
-        ? data.tokens.map((token) => ({
-            tokenId: Number(token.tokenId),
-            tokenUri: token.tokenUri ?? null,
-          }))
-        : []
-    );
-    return data;
-  }, [ensureAddress]);
-
-  const claim = useCallback(async () => {
+  const refreshTokens = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const current = await ensureAddress();
-      await fetchJson<{
-        hash: string;
-      }>("/api/pod-poap/mint", {
-        method: "POST",
-        body: JSON.stringify({ to: current }),
-      });
-      await loadTokens();
+      const owner = await ensureAddress();
+      const data = await fetchJson<{ tokens: PodToken[] }>(
+        `/api/pod-poap/tokens/${encodeURIComponent(owner)}`
+      );
+      setTokens(data.tokens ?? []);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setError(message);
-      throw err;
+      setError(err instanceof Error ? err.message : "Failed to load tokens");
+      setTokens([]);
     } finally {
       setLoading(false);
     }
-  }, [ensureAddress, loadTokens]);
+  }, [ensureAddress]);
 
   useEffect(() => {
-    loadMetadata().catch((err) => {
-      const message = err instanceof Error ? err.message : String(err);
-      setError((prev) => prev ?? message);
-    });
-  }, [loadMetadata]);
+    if (address) {
+      refreshTokens();
+    }
+  }, [address, refreshTokens]);
 
-  const status = useMemo(
-    () => ({
-      loading,
-      error,
-      address,
-      metadata,
-      tokens,
-    }),
-    [address, error, loading, metadata, tokens]
-  );
+  const totalOwned = useMemo(() => tokens.length, [tokens]);
 
   return {
-    ...status,
-    refreshTokens: loadTokens,
-    claim,
-    resetError: () => setError(null),
+    address,
+    metadata,
+    tokens,
+    totalOwned,
+    loading,
+    error,
+    refreshTokens,
+    ensureAddress,
   };
 }

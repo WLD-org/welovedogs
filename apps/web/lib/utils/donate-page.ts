@@ -21,8 +21,7 @@ export async function fetchDogData(dogId: string) {
         status,
         headline,
         created_at,
-        escrow_id,
-        stellar_address,
+        solana_address,
         funds_needed_for,
         campaign_expenses(*)
       ),
@@ -101,7 +100,7 @@ export function transformDogData(dog: any, activeCampaign: any, donationTransact
     spent: activeCampaign ? Number(activeCampaign.spent) || 0 : 0,
     confirmation: dog.confirmation,
     campaignId: activeCampaign?.id,
-    campaignStellarAddress: activeCampaign?.stellar_address || undefined,
+    campaignSolanaAddress: activeCampaign?.solana_address || undefined,
     careProvider: dog.care_provider
       ? {
           id: dog.care_provider.id,

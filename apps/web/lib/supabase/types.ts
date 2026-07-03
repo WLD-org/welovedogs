@@ -25,7 +25,7 @@ export interface Database {
           country: string | null;
           phone: string | null;
           profile_picture: string | null;
-          stellar_address: string | null;
+          solana_address: string | null;
           member_since: string | null;
           created_at: string;
           dogs_supported: number | null;
@@ -39,7 +39,7 @@ export interface Database {
           country?: string | null;
           phone?: string | null;
           profile_picture?: string | null;
-          stellar_address?: string | null;
+          solana_address?: string | null;
           member_since?: string | null;
           created_at?: string;
           dogs_supported?: number | null;
@@ -53,7 +53,7 @@ export interface Database {
           country?: string | null;
           phone?: string | null;
           profile_picture?: string | null;
-          stellar_address?: string | null;
+          solana_address?: string | null;
           member_since?: string | null;
           created_at?: string;
           dogs_supported?: number | null;

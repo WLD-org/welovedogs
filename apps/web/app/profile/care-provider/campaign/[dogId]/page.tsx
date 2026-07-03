@@ -68,7 +68,7 @@ export default async function CampaignManagementPage({
       ),
       care_providers (
         id,
-        stellar_address
+        solana_address
       )
     `
     )
@@ -112,9 +112,7 @@ export default async function CampaignManagementPage({
     goal: Number(campaign.goal || 0),
     status: campaign.status || "Active",
     headline: campaign.headline || `${campaign.dog_name} needs your help`,
-    escrowContractId: campaign.escrow_id || null,
-    stellarAddress: campaign.stellar_address || null, // Campaign's stellar_address field
-    careProviderStellarAddress: campaign.care_providers?.stellar_address || null, // Care provider's address
+    solanaAddress: campaign.solana_address || null,
   };
 
   const updatesData =
@@ -151,7 +149,7 @@ export default async function CampaignManagementPage({
       explorerUrl:
         donation.explorer_url ||
         (donation.tx_hash
-          ? `https://stellar.expert/explorer/${process.env.NEXT_PUBLIC_STELLAR_NETWORK === "public" ? "public" : "testnet"}/tx/${donation.tx_hash}`
+          ? `https://explorer.solana.com/tx/${donation.tx_hash}?cluster=${process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}`
           : ""), // Note: Using env var directly here since this is server-side
     })) || [];
 

@@ -37,7 +37,7 @@ export function DonationModal({
 
     try {
       setSuccess(null);
-      const result = await donate(recipientAddress, amount, memo || undefined);
+      const result = await donate(recipientAddress, amount);
       setSuccess(`Donation successful! Transaction: ${result.hash.slice(0, 8)}...`);
       setAmount(defaultAmount);
       setMemo("");

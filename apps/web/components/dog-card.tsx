@@ -28,8 +28,6 @@ interface DogCardProps {
   rescuerName: string;
   rescuerId: string | number;
   rescuerImage?: string;
-  escrowBalance?: number;
-  isLoadingEscrow?: boolean;
   needsSurgery?: boolean;
   medicalTreatment?: boolean;
   medicalRecovery?: boolean;
@@ -54,8 +52,6 @@ export function DogCard({
   rescuerName,
   rescuerId,
   rescuerImage,
-  escrowBalance,
-  isLoadingEscrow = false,
 }: DogCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
@@ -80,10 +76,7 @@ export function DogCard({
     }
   };
 
-  // totalRaised is now the sum of raised (instant) + escrowBalance (escrow donations)
-  // Both values come from donation totals, not balances
-  const totalRaised = raised + (escrowBalance || 0);
-  const hasEscrow = escrowBalance !== undefined && escrowBalance > 0;
+  const totalRaised = raised;
 
   // Get rescuer type display info
   const getRescuerTypeInfo = (type: "Shelter" | "Veterinary" | "Rescuer") => {
@@ -220,55 +213,22 @@ export function DogCard({
             {goal && goal > 0 ? (
               <>
                 <div className="space-y-2">
-                  {/* Progress Bar */}
                   <div className="relative h-4 w-full overflow-hidden rounded-full bg-white/20">
-                    {/* Instant Donations (shown first/lower layer) */}
-                    {raised > 0 && (
+                    {totalRaised > 0 && (
                       <div
                         className="absolute left-0 top-0 h-full bg-gradient-to-r from-yellow-200 to-yellow-300 transition-all duration-500"
                         style={{
-                          width: `${Math.min((raised / goal) * 100, 100)}%`,
+                          width: `${Math.min((totalRaised / goal) * 100, 100)}%`,
                         }}
-                        title={`Instant: ${formatCurrencyDisplay(raised)}`}
-                      />
-                    )}
-                    {/* Escrow Donations (shown on top, stacked after instant) */}
-                    {hasEscrow && escrowBalance && escrowBalance > 0 && (
-                      <div
-                        className="absolute top-0 h-full bg-gradient-to-r from-blue-400 to-blue-500 transition-all duration-500"
-                        style={{
-                          left: `${Math.min((raised / goal) * 100, 100)}%`,
-                          width: `${Math.min((escrowBalance / goal) * 100, 100 - Math.min((raised / goal) * 100, 100))}%`,
-                        }}
-                        title={`Escrow: ${formatCurrencyDisplay(escrowBalance)}`}
                       />
                     )}
                   </div>
 
-                  {/* Amounts Display */}
                   <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3">
-                      {hasEscrow && escrowBalance && escrowBalance > 0 && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-blue-400" />
-                          <span className="text-white/70">
-                            {isLoadingEscrow ? "..." : formatCurrencyDisplay(escrowBalance)}
-                          </span>
-                        </div>
-                      )}
-                      {raised > 0 && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-yellow-300" />
-                          <span className="text-white/70">{formatCurrencyDisplay(raised)}</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-white/80">
-                      {formatCurrencyDisplay(totalRaised)} / {formatCurrencyDisplay(goal)}
-                    </span>
+                    <span className="text-white/70">{formatCurrencyDisplay(totalRaised)} raised</span>
+                    <span className="text-white/80">Goal: {formatCurrencyDisplay(goal)}</span>
                   </div>
 
-                  {/* Percentage */}
                   <div className="text-center">
                     <span className="text-sm font-semibold text-white">
                       {Math.min(Math.round((totalRaised / goal) * 100), 100)}% funded
@@ -287,24 +247,6 @@ export function DogCard({
                     {formatCurrencyDisplay(totalRaised)}
                   </span>
                 </div>
-                {hasEscrow && escrowBalance && escrowBalance > 0 && (
-                  <div className="flex items-center justify-between text-xs text-white/70">
-                    <span className="flex items-center gap-1">
-                      <Shield className="h-3 w-3" />
-                      Escrow
-                    </span>
-                    <span>{isLoadingEscrow ? "..." : formatCurrencyDisplay(escrowBalance)}</span>
-                  </div>
-                )}
-                {raised > 0 && (
-                  <div className="flex items-center justify-between text-xs text-white/70">
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      Instant
-                    </span>
-                    <span>{formatCurrencyDisplay(raised)}</span>
-                  </div>
-                )}
               </div>
             )}
           </div>

@@ -79,8 +79,7 @@ export default async function DonorProfilePage() {
       ),
       campaigns (
         id,
-        escrow_id,
-        stellar_address
+        solana_address
       )
     `
         )
@@ -110,7 +109,7 @@ export default async function DonorProfilePage() {
 
   // Get NFT achievements with blockchain sync fallback (Escrow/Stellar blockchain)
   // This syncs NFTs from blockchain if not found in database
-  const nftAchievements = await getNFTAchievements(allAchievements, donor?.stellar_address);
+  const nftAchievements = await getNFTAchievements(allAchievements, donor?.solana_address);
 
   // Debug logging for data sources
   if (donor && allAchievements) {

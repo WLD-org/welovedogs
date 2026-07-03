@@ -1,66 +1,37 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Heart, Shield, Zap, AlertCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Heart, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useEscrow } from "@/hooks/useEscrow";
 import { useDonation } from "@/hooks/useDonation";
-import { useWalletsKit } from "@/hooks/useWalletsKit";
-import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { createBrowserClient } from "@/lib/supabase/client";
-import { useGetMultipleEscrowBalances } from "@trustless-work/escrow/hooks";
 import { toast } from "sonner";
 import type { DonationWidgetProps } from "@/lib/types/donation-widget";
 import { getIconEmoji } from "@/lib/utils/fund-icons";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/solana/config";
 
 export function StickyDonationWidget({
   dogName,
-  raised: _raised, // Legacy prop - replaced by fetched balances
   spent,
   fundsNeededFor,
   campaignId,
-  careProviderAddress: _careProviderAddress, // Reserved for future use
-  campaignStellarAddress,
-  goal: _goal, // Reserved for future use
+  campaignSolanaAddress,
 }: DonationWidgetProps) {
   const router = useRouter();
-  const { address, openModalAndConnect } = useWalletsKit();
-  const {
-    fundCampaignEscrow,
-    getEscrowDetails,
-    isLoading: escrowLoading,
-    error: escrowError,
-  } = useEscrow();
+  const { address, openModalAndConnect } = useSolanaWallet();
   const { donate, isLoading: donationLoading, error: donationError } = useDonation();
-  const { getMultipleBalances } = useGetMultipleEscrowBalances();
 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(50);
   const [customAmount, setCustomAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [donationType, setDonationType] = useState<"escrow" | "instant">("escrow");
   const [error, setError] = useState<string | null>(null);
-  const [escrowContractId, setEscrowContractId] = useState<string | null>(null);
-  const [escrowBalance, setEscrowBalance] = useState<number>(0);
-  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-  const [campaignStellarAddr, setCampaignStellarAddr] = useState<string | null>(null);
+  const [campaignSolanaAddr, setCampaignSolanaAddr] = useState<string | null>(null);
   const [dogId, setDogId] = useState<string | null>(null);
-  const [totalEscrowDonations, setTotalEscrowDonations] = useState<number>(0);
-  const [totalInstantDonations, setTotalInstantDonations] = useState<number>(0);
+  const [totalDonations, setTotalDonations] = useState<number>(0);
   const [isLoadingDonations, setIsLoadingDonations] = useState(false);
 
-  // Store functions in refs to prevent re-renders while keeping them up-to-date
-  const getMultipleBalancesRef = useRef(getMultipleBalances);
-  const getEscrowDetailsRef = useRef(getEscrowDetails);
-
-  // Update refs when functions change (they should be stable from hooks)
-  useEffect(() => {
-    getMultipleBalancesRef.current = getMultipleBalances;
-    getEscrowDetailsRef.current = getEscrowDetails;
-  }, [getMultipleBalances, getEscrowDetails]);
-
-  // Fetch campaign data (escrow_id, stellar_address, and dog_id) from Supabase
-  // Only fetch once when campaignId changes
   useEffect(() => {
     const fetchCampaignData = async () => {
       if (!campaignId) return;
@@ -69,22 +40,14 @@ export function StickyDonationWidget({
         const supabase = createBrowserClient();
         const { data: campaign } = await supabase
           .from("campaigns")
-          .select("escrow_id, stellar_address, dog_id")
+          .select("solana_address, dog_id")
           .eq("id", campaignId)
           .maybeSingle();
 
         if (campaign) {
-          // Set campaign stellar address (for instant donations and balance fetching)
-          if (campaign.stellar_address) {
-            setCampaignStellarAddr(campaign.stellar_address);
+          if (campaign.solana_address) {
+            setCampaignSolanaAddr(campaign.solana_address);
           }
-
-          // Fetch escrow data if escrow exists
-          if (campaign.escrow_id) {
-            setEscrowContractId(campaign.escrow_id);
-          }
-
-          // Set dog ID for donation tracking
           if (campaign.dog_id) {
             setDogId(campaign.dog_id);
           }
@@ -97,11 +60,9 @@ export function StickyDonationWidget({
     fetchCampaignData();
   }, [campaignId]);
 
-  // Refresh donation totals from database
   const refreshDonations = useCallback(async () => {
     if (!campaignId) {
-      setTotalEscrowDonations(0);
-      setTotalInstantDonations(0);
+      setTotalDonations(0);
       return;
     }
 
@@ -109,7 +70,7 @@ export function StickyDonationWidget({
       const supabase = createBrowserClient();
       const { data: transactions, error } = await supabase
         .from("transactions")
-        .select("usd_value, donation_type")
+        .select("usd_value")
         .eq("campaign_id", campaignId)
         .eq("type", "donation");
 
@@ -118,131 +79,28 @@ export function StickyDonationWidget({
         return;
       }
 
-      let escrowTotal = 0;
-      let instantTotal = 0;
+      const total =
+        transactions?.reduce(
+          (sum: number, tx: { usd_value: number | null }) => sum + Number(tx.usd_value || 0),
+          0
+        ) ?? 0;
 
-      transactions?.forEach((tx: { usd_value: number | null; donation_type: string | null }) => {
-        const amount = Number(tx.usd_value || 0);
-        if (tx.donation_type === "escrow") {
-          escrowTotal += amount;
-        } else if (tx.donation_type === "instant") {
-          instantTotal += amount;
-        }
-      });
-
-      setTotalEscrowDonations(escrowTotal);
-      setTotalInstantDonations(instantTotal);
+      setTotalDonations(total);
     } catch (err) {
       console.error("Error refreshing donations:", err);
     }
   }, [campaignId]);
 
-  // Fetch total donations from database - only when campaignId changes
   useEffect(() => {
     const fetchDonations = async () => {
       setIsLoadingDonations(true);
       await refreshDonations();
       setIsLoadingDonations(false);
     };
-
     fetchDonations();
   }, [refreshDonations]);
 
-  // Fetch escrow balance separately - only when escrowContractId changes
-  useEffect(() => {
-    const fetchEscrowBalance = async () => {
-      if (!escrowContractId) {
-        setEscrowBalance(0);
-        return;
-      }
-
-      setIsLoadingBalances(true);
-      try {
-        const balances = await getMultipleBalancesRef.current({
-          addresses: [escrowContractId],
-        });
-
-        // Handle array response
-        if (Array.isArray(balances) && balances.length > 0) {
-          const balanceData = balances[0];
-          if (balanceData && "balance" in balanceData && typeof balanceData.balance === "number") {
-            setEscrowBalance(balanceData.balance);
-          }
-        }
-      } catch (balanceError) {
-        console.error("Error fetching escrow balance:", balanceError);
-        // Try to get balance from escrow details
-        try {
-          const escrowDetails = await getEscrowDetailsRef.current([escrowContractId]);
-          const escrow = Array.isArray(escrowDetails) ? escrowDetails[0] : escrowDetails;
-          if (escrow && "balance" in escrow && typeof escrow.balance === "number") {
-            setEscrowBalance(escrow.balance);
-          }
-        } catch (detailsError) {
-          console.error("Error fetching escrow details for balance:", detailsError);
-        }
-      } finally {
-        setIsLoadingBalances(false);
-      }
-    };
-
-    fetchEscrowBalance();
-  }, [escrowContractId]);
-
-  // Memoize stellar address to prevent unnecessary re-renders
-  const stellarAddressToUse = useMemo(() => {
-    return campaignStellarAddr || campaignStellarAddress || null;
-  }, [campaignStellarAddr, campaignStellarAddress]);
-
-  // Fetch campaign wallet balance from the campaign's stellar_address
-  const {
-    lumensBalance: campaignWalletBalance,
-    isLoading: campaignBalanceLoading,
-    refresh: refreshCampaignBalance,
-  } = useStellarAccount(stellarAddressToUse);
-
-  // Set default donation type based on escrow availability
-  useEffect(() => {
-    if (escrowContractId) {
-      setDonationType("escrow"); // Default to escrow if available
-    } else {
-      setDonationType("instant"); // Only instant if no escrow
-    }
-  }, [escrowContractId]);
-
-  // Refresh balances after successful donation
-  // Memoize to prevent unnecessary re-creations
-  const refreshBalances = useCallback(async () => {
-    // Refresh escrow balance if escrow exists
-    if (escrowContractId) {
-      try {
-        setIsLoadingBalances(true);
-        const balances = await getMultipleBalancesRef.current({
-          addresses: [escrowContractId],
-        });
-
-        if (Array.isArray(balances) && balances.length > 0) {
-          const balanceData = balances[0];
-          if (balanceData && "balance" in balanceData && typeof balanceData.balance === "number") {
-            setEscrowBalance(balanceData.balance);
-          }
-        }
-      } catch (balanceError) {
-        console.error("Error refreshing escrow balance:", balanceError);
-      } finally {
-        setIsLoadingBalances(false);
-      }
-    }
-
-    // Refresh campaign wallet balance
-    if (stellarAddressToUse && refreshCampaignBalance) {
-      try {
-        await refreshCampaignBalance();
-      } catch (error) {
-        console.error("Error refreshing campaign wallet balance:", error);
-      }
-    }
-  }, [escrowContractId, stellarAddressToUse, refreshCampaignBalance]);
+  const solanaAddressToUse = campaignSolanaAddr || campaignSolanaAddress || null;
 
   const handleDonate = async () => {
     const amount = selectedAmount || Number.parseFloat(customAmount);
@@ -254,13 +112,21 @@ export function StickyDonationWidget({
       return;
     }
 
-    // Check wallet connection
     if (!address) {
       toast.error("Wallet not connected", {
-        description: "Please connect your wallet to make a donation",
+        description: "Please connect your Solana wallet to make a donation",
       });
       setError("Please connect your wallet to donate");
       await openModalAndConnect();
+      return;
+    }
+
+    const recipientAddr = solanaAddressToUse;
+    if (!recipientAddr) {
+      toast.error("Campaign wallet not configured", {
+        description: "Please contact the campaign organizer.",
+      });
+      setError("Campaign Solana address is required for donations.");
       return;
     }
 
@@ -268,109 +134,30 @@ export function StickyDonationWidget({
     setError(null);
 
     const toastId = toast.loading("Processing donation...", {
-      description: "Please wait while we process your donation",
+      description: "Sending USDC on Solana",
     });
 
     try {
-      if (donationType === "escrow") {
-        // Escrow donation flow
-        if (!campaignId) {
-          throw new Error("Campaign ID is required for escrow donations");
-        }
+      const donationResult = await donate(recipientAddr, amount.toString());
 
-        if (!escrowContractId) {
-          throw new Error(
-            "No escrow account found for this campaign. Please contact the campaign organizer."
-          );
-        }
-
-        toast.loading("Funding escrow...", {
-          id: toastId,
-          description: "Sending your donation to the escrow account",
-        });
-
-        // Fund the escrow
-        const fundResult = await fundCampaignEscrow(escrowContractId, amount);
-
-        if (!fundResult.successful) {
-          throw new Error("Failed to fund escrow");
-        }
-
-        toast.success("Donation successful!", {
-          id: toastId,
-          description: `Your $${amount} donation has been sent to the escrow account`,
-          duration: 5000,
-        });
-
-        // Refresh balances and donations before navigating
-        await refreshBalances();
-        await refreshDonations();
-
-        // Pass both dogId (if available) and campaignId (as fallback for fetching dogId)
-        const dogIdParam = dogId ? `&dogId=${encodeURIComponent(dogId)}` : "";
-        const campaignIdParam = campaignId ? `&campaignId=${encodeURIComponent(campaignId)}` : "";
-        const donorAddressParam = address ? `&donorAddress=${encodeURIComponent(address)}` : "";
-        router.push(
-          `/donation-success?dog=${encodeURIComponent(dogName)}&amount=${amount}&type=escrow&contractId=${escrowContractId}&hash=${fundResult.hash || ""}${dogIdParam}${campaignIdParam}${donorAddressParam}`
-        );
-      } else {
-        // Instant donation flow
-        const stellarAddr = campaignStellarAddr || campaignStellarAddress;
-        if (!stellarAddr) {
-          throw new Error(
-            "Campaign stellar address is required for instant donations. Please contact the campaign organizer."
-          );
-        }
-
-        toast.loading("Sending donation...", {
-          id: toastId,
-          description: "Processing your instant donation",
-        });
-
-        // Create a short memo (max 28 bytes for Stellar)
-        // Use campaign ID if available, otherwise truncate dog name
-        const maxMemoLength = 28;
-        let memo = "";
-        if (campaignId) {
-          // Use first 8 chars of campaign ID: "aa5389ca"
-          memo = campaignId.substring(0, 8);
-        } else if (dogName) {
-          // Truncate dog name to fit
-          memo = dogName.substring(0, maxMemoLength);
-        }
-
-        const donationResult = await donate(stellarAddr, amount.toString(), memo || undefined);
-
-        if (!donationResult.successful) {
-          throw new Error("Donation failed");
-        }
-
-        toast.success("Donation successful!", {
-          id: toastId,
-          description: `Your $${amount} donation has been sent`,
-          duration: 5000,
-        });
-
-        // Refresh campaign wallet balance before navigating
-        if (stellarAddressToUse && refreshCampaignBalance) {
-          try {
-            await refreshCampaignBalance();
-          } catch (error) {
-            console.error("Error refreshing campaign wallet balance:", error);
-          }
-        }
-
-        // Refresh donation totals
-        await refreshDonations();
-
-        // Pass both dogId (if available) and campaignId (as fallback for fetching dogId)
-        const dogIdParam = dogId ? `&dogId=${encodeURIComponent(dogId)}` : "";
-        const campaignIdParam = campaignId ? `&campaignId=${encodeURIComponent(campaignId)}` : "";
-        const donorAddressParam = address ? `&donorAddress=${encodeURIComponent(address)}` : "";
-        router.push(
-          `/donation-success?dog=${encodeURIComponent(dogName)}&amount=${amount}&type=instant&hash=${donationResult.hash || ""}${dogIdParam}${campaignIdParam}${donorAddressParam}`
-        );
+      if (!donationResult.successful) {
+        throw new Error("Donation failed");
       }
+
+      toast.success("Donation successful!", {
+        id: toastId,
+        description: `$${amount} sent — ${(100 - PLATFORM_COMMISSION_RATE * 100).toFixed(0)}% goes to ${dogName}'s care`,
+        duration: 5000,
+      });
+
+      await refreshDonations();
+
+      const dogIdParam = dogId ? `&dogId=${encodeURIComponent(dogId)}` : "";
+      const campaignIdParam = campaignId ? `&campaignId=${encodeURIComponent(campaignId)}` : "";
+      const donorAddressParam = address ? `&donorAddress=${encodeURIComponent(address)}` : "";
+      router.push(
+        `/donation-success?dog=${encodeURIComponent(dogName)}&amount=${amount}&hash=${donationResult.hash}${dogIdParam}${campaignIdParam}${donorAddressParam}`
+      );
     } catch (err: unknown) {
       console.error("Donation error:", err);
       const errorMessage =
@@ -386,12 +173,8 @@ export function StickyDonationWidget({
     }
   };
 
-  const isLoading = isProcessing || escrowLoading || donationLoading;
-  const displayError = error || escrowError?.message || donationError?.message;
-
-  // Calculate total raised from donations (not balances)
-  const totalRaised = totalEscrowDonations + totalInstantDonations;
-
+  const isLoading = isProcessing || donationLoading;
+  const displayError = error || donationError?.message;
   const donationAmounts = [25, 50, 100];
 
   const normalizedFunds = Array.isArray(fundsNeededFor)
@@ -408,12 +191,10 @@ export function StickyDonationWidget({
           backgroundPosition: "center",
         }}
       >
-        {/* Goal Section */}
         <h2 className="mb-3 md:mb-4 font-sans text-lg md:text-xl font-bold text-white">
           Support {dogName}
         </h2>
 
-        {/* Amount Raised */}
         <div className="mb-3 md:mb-4">
           <div className="mb-1.5 flex items-end justify-between">
             <span className="font-sans text-xs md:text-sm font-semibold text-white">
@@ -423,65 +204,20 @@ export function StickyDonationWidget({
               $
               {isLoadingDonations
                 ? "..."
-                : totalRaised.toLocaleString(undefined, {
+                : totalDonations.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
             </span>
           </div>
-          {escrowContractId ? (
-            <div className="mt-1.5 space-y-1">
-              <div className="flex items-center justify-between text-[10px] md:text-xs text-white/80">
-                <span className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  Escrow:
-                </span>
-                <span className="font-medium">
-                  $
-                  {isLoadingDonations
-                    ? "..."
-                    : totalEscrowDonations.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] md:text-xs text-white/80">
-                <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" />
-                  Instant:
-                </span>
-                <span className="font-medium">
-                  $
-                  {isLoadingDonations
-                    ? "..."
-                    : totalInstantDonations.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                </span>
-              </div>
-            </div>
-          ) : stellarAddressToUse ? (
-            <div className="mt-1.5 flex items-center justify-between text-[10px] md:text-xs text-white/80">
-              <span className="flex items-center gap-1">
-                <Zap className="h-3 w-3" />
-                Instant Donations:
-              </span>
-              <span className="font-medium">
-                $
-                {isLoadingDonations
-                  ? "..."
-                  : totalInstantDonations.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-              </span>
-            </div>
-          ) : null}
+          <div className="mt-1.5 flex items-center justify-between text-[10px] md:text-xs text-white/80">
+            <span className="flex items-center gap-1">
+              <Zap className="h-3 w-3" />
+              Direct donations on Solana
+            </span>
+          </div>
         </div>
 
-        {/* Spent Progress */}
         <div className="mb-3 md:mb-4">
           <div className="mb-1.5 flex items-end justify-between">
             <span className="font-sans text-xs md:text-sm font-semibold text-white">
@@ -492,52 +228,6 @@ export function StickyDonationWidget({
             </span>
           </div>
         </div>
-
-        {/* Donation Type - Only show if escrow exists */}
-        {escrowContractId && (
-          <div className="mb-3 md:mb-4 rounded-xl bg-white/95 p-2.5 md:p-3">
-            <h3 className="mb-2 font-sans text-xs md:text-sm font-bold text-gray-900">
-              Donation Type
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setDonationType("escrow")}
-                className={`rounded-lg border-2 p-2.5 transition-all ${
-                  donationType === "escrow"
-                    ? "border-purple-600 bg-purple-600 text-white shadow-md"
-                    : "border-purple-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50"
-                }`}
-              >
-                <div className="flex items-center justify-center gap-1.5 mb-1">
-                  <span className="font-sans text-xs md:text-sm font-semibold">
-                    Proof-Based Release
-                  </span>
-                </div>
-                <p className="font-sans text-[9px] md:text-[10px] leading-tight opacity-90">
-                  Proof of Expense Model
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDonationType("instant")}
-                className={`rounded-lg border-2 p-2.5 transition-all ${
-                  donationType === "instant"
-                    ? "border-purple-600 bg-purple-600 text-white shadow-md"
-                    : "border-purple-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50"
-                }`}
-              >
-                <div className="flex items-center justify-center gap-1.5 mb-1">
-                  <Zap className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className="font-sans text-xs md:text-sm font-semibold">Instant</span>
-                </div>
-                <p className="font-sans text-[9px] md:text-[10px] leading-tight opacity-90">
-                  Immediate access to funds
-                </p>
-              </button>
-            </div>
-          </div>
-        )}
 
         {normalizedFunds.length > 0 && (
           <div className="mb-3 md:mb-4 rounded-xl bg-white/95 p-2.5 md:p-3">
@@ -562,7 +252,6 @@ export function StickyDonationWidget({
           </div>
         )}
 
-        {/* Select Donation Amount */}
         <div className="mb-2.5 md:mb-3 rounded-xl bg-white/95 p-2 md:p-2.5">
           <h3 className="mb-1.5 font-sans text-[10px] md:text-xs font-bold text-gray-900">
             Select Donation Amount
@@ -613,7 +302,6 @@ export function StickyDonationWidget({
           </div>
         </div>
 
-        {/* Error Message */}
         {displayError && (
           <div className="mb-2 md:mb-3 rounded-lg bg-red-50 border border-red-200 p-2.5 md:p-3">
             <div className="flex items-start gap-2">
@@ -623,16 +311,14 @@ export function StickyDonationWidget({
           </div>
         )}
 
-        {/* Wallet Connection Status */}
         {!address && (
           <div className="mb-2 md:mb-3 rounded-lg bg-yellow-50 border border-yellow-200 p-2.5 md:p-3">
             <p className="font-sans text-xs text-yellow-800 leading-tight">
-              Please connect your wallet to make a donation
+              Connect your Solana wallet (Phantom, Solflare) to donate
             </p>
           </div>
         )}
 
-        {/* Donate Button */}
         <Button
           onClick={handleDonate}
           disabled={isLoading || (!selectedAmount && !customAmount) || !address}
@@ -667,12 +353,11 @@ export function StickyDonationWidget({
           )}
         </Button>
 
-        {/* Security Message */}
         <p className="mb-1.5 md:mb-2 text-center font-sans text-[9px] md:text-[10px] text-white/90 leading-tight">
-          Your donation is secure and tax-deductible. 100% goes directly to {dogName}'s care.
+          {(100 - PLATFORM_COMMISSION_RATE * 100).toFixed(0)}% goes directly to {dogName}&apos;s
+          care. A {(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}% platform fee supports operations.
         </p>
 
-        {/* Transparency Footer */}
         <div className="flex items-center justify-center gap-1.5 rounded-lg bg-white/20 px-2 py-1.5">
           <svg
             className="h-3 w-3 md:h-3.5 md:w-3.5 text-white shrink-0"
@@ -690,7 +375,7 @@ export function StickyDonationWidget({
             />
           </svg>
           <span className="font-sans text-[9px] md:text-[10px] text-white leading-tight">
-            Live transparency powered by Stellar
+            Live transparency powered by Solana
           </span>
         </div>
       </div>
