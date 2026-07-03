@@ -10,8 +10,7 @@ type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   } | null;
   campaigns?: {
     id: string;
-    escrow_id: string | null;
-    stellar_address: string | null;
+    solana_address: string | null;
   } | null;
 };
 
@@ -23,7 +22,7 @@ export interface DonorData {
   country: string;
   phone?: string;
   profilePicture?: string;
-  stellarAddress?: string;
+  solanaAddress?: string;
   memberSince: string;
   totalDonations: number;
   dogsSupported: number;
@@ -36,8 +35,7 @@ export interface DonationData {
   amount: number;
   date: string;
   transactionHash: string;
-  donationType?: "escrow" | "instant";
-  escrowContractId?: string | null;
+  donationType?: "direct";
   campaignId?: string | null;
 }
 
@@ -58,7 +56,7 @@ export function transformDonorData(
       country: donor.country || "",
       phone: donor.phone || undefined,
       profilePicture: donor.profile_picture || undefined,
-      stellarAddress: donor.stellar_address || undefined,
+      solanaAddress: donor.solana_address || undefined,
       memberSince: donor.member_since || donor.created_at,
       totalDonations: totalDonatedAmount,
       dogsSupported: donor.dogs_supported || 0,
@@ -92,8 +90,7 @@ export function transformDonations(transactions: Transaction[] | null): Donation
     amount: Number(tx.usd_value || 0),
     date: tx.created_at,
     transactionHash: tx.tx_hash || "",
-    donationType: tx.donation_type as "escrow" | "instant" | undefined,
-    escrowContractId: tx.escrow_contract_id || tx.campaigns?.escrow_id || null,
+    donationType: (tx.donation_type as "direct" | undefined) || "direct",
     campaignId: tx.campaign_id || tx.campaigns?.id || null,
   }));
 }

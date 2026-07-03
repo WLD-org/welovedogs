@@ -2,24 +2,23 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { getTransactionExplorerUrl } from "@/lib/utils/stellar-explorer";
+import { getTransactionExplorerUrl } from "@/lib/utils/solana-explorer";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/solana/config";
 
 type RecordDonationPayload = {
-  donorId?: string; // Optional - will be fetched from auth if not provided
+  donorId?: string;
   dogId: string;
   campaignId?: string;
   txHash: string;
-  amount: number; // USD value
-  donationType: "escrow" | "instant";
-  contractId?: string; // For escrow donations
-  donorAddress?: string; // Stellar wallet address of the donor
+  amount: number;
+  donorAddress?: string;
+  platformFee?: number;
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => ({}))) as RecordDonationPayload;
-    const { donorId, dogId, campaignId, txHash, amount, donationType, contractId, donorAddress } =
-      body;
+    const { donorId, dogId, campaignId, txHash, amount, donorAddress, platformFee } = body;
 
     if (!dogId || !txHash || !amount) {
       return NextResponse.json(
@@ -30,7 +29,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createServerClient();
 
-    // Get donor ID from authenticated user if not provided
     let finalDonorId = donorId;
     if (!finalDonorId) {
       const {
@@ -50,10 +48,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // If still no donor ID, we can still record the transaction but without donor link
-    // This allows guest donations to be tracked
-
-    // Check if transaction already exists
     const { data: existingTx } = await supabase
       .from("transactions")
       .select("id")
@@ -68,7 +62,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Get dog's campaign if campaignId not provided
     let finalCampaignId = campaignId;
     if (!finalCampaignId) {
       const { data: campaign } = await supabase
@@ -80,10 +73,9 @@ export async function POST(req: NextRequest) {
       finalCampaignId = campaign?.id || null;
     }
 
-    // Build Stellar Expert explorer URL for the transaction
+    const fee = platformFee ?? Math.round(amount * PLATFORM_COMMISSION_RATE * 100) / 100;
     const explorerUrl = getTransactionExplorerUrl(txHash);
 
-    // Record the transaction
     const { data: transaction, error: txError } = await supabase
       .from("transactions")
       .insert({
@@ -92,14 +84,13 @@ export async function POST(req: NextRequest) {
         campaign_id: finalCampaignId,
         tx_hash: txHash,
         usd_value: amount,
-        crypto_amount: amount.toString(), // Assuming USDC 1:1 with USD
+        crypto_amount: amount.toString(),
         token_symbol: "USDC",
-        type: "donation", // Set type to "donation"
-        donation_type: donationType, // escrow or instant
-        escrow_contract_id: contractId || null,
-        donor_address: donorAddress || null, // Store the donor's Stellar wallet address
+        type: "donation",
+        donation_type: "direct",
+        donor_address: donorAddress || null,
         explorer_url: explorerUrl,
-        description: `Donation of $${amount} ${donationType === "escrow" ? "via escrow" : "instant"}`,
+        description: `Direct donation of $${amount} (platform fee: $${fee})`,
       })
       .select()
       .single();
@@ -112,14 +103,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update quest progress if donor ID exists
     if (finalDonorId) {
       try {
         const { updateQuestProgress } = await import("@/app/actions/update-quest-progress");
         await updateQuestProgress(finalDonorId);
       } catch (questError) {
         console.error("Error updating quest progress:", questError);
-        // Don't fail the request if quest update fails
       }
     }
 
@@ -134,10 +123,10 @@ export async function POST(req: NextRequest) {
         usd_value: transaction.usd_value,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in record donation:", error);
     return NextResponse.json(
-      { ok: false, error: error?.message || "Unknown error" },
+      { ok: false, error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

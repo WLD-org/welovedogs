@@ -49,8 +49,7 @@ export default function CreateCampaignPage() {
     headline: "",
     selectedCategories: [] as string[],
     confirmed: false,
-    stellarAddress: "",
-    escrowContractId: "",
+    solanaAddress: "",
   });
 
   useEffect(() => {
@@ -127,13 +126,10 @@ export default function CreateCampaignPage() {
     try {
       const supabase = createBrowserClient();
 
-      // Validate Stellar address format
-      if (formData.stellarAddress) {
-        // Basic Stellar address validation (56 characters, starts with G)
-        if (!formData.stellarAddress.match(/^G[A-Z0-9]{55}$/)) {
-          throw new Error(
-            "Invalid Stellar address format. Stellar addresses should be 56 characters and start with 'G'."
-          );
+      // Validate Solana address format (base58, 32-44 chars)
+      if (formData.solanaAddress) {
+        if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(formData.solanaAddress)) {
+          throw new Error("Invalid Solana address format.");
         }
       }
 
@@ -151,8 +147,7 @@ export default function CreateCampaignPage() {
           raised: 0,
           spent: 0,
           status: "Active",
-          stellar_address: formData.stellarAddress || null,
-          escrow_id: formData.escrowContractId || null,
+          solana_address: formData.solanaAddress || null,
         })
         .select()
         .single();
@@ -362,36 +357,20 @@ export default function CreateCampaignPage() {
               </div>
 
               <div>
-                <Label htmlFor="stellarAddress">
-                  Stellar Wallet Address <span className="text-red-500">*</span>
+                <Label htmlFor="solanaAddress">
+                  Solana Wallet Address <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="stellarAddress"
-                  value={formData.stellarAddress}
-                  onChange={(e) => setFormData({ ...formData, stellarAddress: e.target.value })}
-                  placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                  id="solanaAddress"
+                  value={formData.solanaAddress}
+                  onChange={(e) => setFormData({ ...formData, solanaAddress: e.target.value })}
+                  placeholder="Base58 Solana address"
                   className="mt-1.5 font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  The Stellar address where donations will be sent
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="escrowContractId">
-                  Escrow Contract ID <span className="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Input
-                  id="escrowContractId"
-                  value={formData.escrowContractId}
-                  onChange={(e) => setFormData({ ...formData, escrowContractId: e.target.value })}
-                  placeholder="Leave empty to create escrow later"
-                  className="mt-1.5 font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  If you already have an escrow contract, enter its ID here. Otherwise, you can
-                  create one later from the campaign management page.
+                  The Solana address where donations will be sent (99% of each donation; 1% platform
+                  fee is deducted automatically)
                 </p>
               </div>
             </CardContent>

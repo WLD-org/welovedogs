@@ -34,7 +34,7 @@ export default function RegisterCareProvider() {
     facebook: "",
     instagram: "",
     twitter: "",
-    stellarAddress: "",
+    solanaAddress: "",
     about: "",
     question1: "",
     question2: "",
@@ -130,7 +130,7 @@ export default function RegisterCareProvider() {
           instagram: formData.instagram || null,
           twitter: formData.twitter || null,
         },
-        stellar_address: formData.stellarAddress || null,
+        solana_address: formData.solanaAddress || null,
         profile_photo: profilePhotoUrl,
         profile_complete: true,
         dogs_helped: 0,
@@ -520,17 +520,17 @@ export default function RegisterCareProvider() {
                     <h4 className="font-bold text-lg text-primary">Blockchain Wallet (Optional)</h4>
 
                     <div>
-                      <Label htmlFor="stellarAddress">Stellar Wallet Address</Label>
+                      <Label htmlFor="solanaAddress">Solana Wallet Address</Label>
                       <p className="text-xs text-muted-foreground mb-2">
-                        Add your Stellar wallet address to receive funds on the blockchain
+                        Add your Solana wallet address to receive funds on the blockchain
                       </p>
                       <div className="relative">
                         <Wallet className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <Input
-                          id="stellarAddress"
-                          placeholder="G... (Stellar address)"
-                          value={formData.stellarAddress}
-                          onChange={(e) => handleInputChange("stellarAddress", e.target.value)}
+                          id="solanaAddress"
+                          placeholder="Base58 Solana address"
+                          value={formData.solanaAddress}
+                          onChange={(e) => handleInputChange("solanaAddress", e.target.value)}
                           className="pl-10 font-mono"
                         />
                       </div>

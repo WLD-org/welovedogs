@@ -16,11 +16,9 @@ import {
   Save,
   X,
   ExternalLink,
-  Shield,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { CreateEscrowModal } from "@/components/CreateEscrowModal";
 import { Label } from "@/components/ui/label";
 
 interface Campaign {
@@ -33,9 +31,7 @@ interface Campaign {
   goal: number;
   headline: string;
   status: string;
-  escrowContractId?: string | null;
-  stellarAddress?: string | null; // Campaign's stellar_address field
-  careProviderStellarAddress?: string | null; // Care provider's stellar_address
+  solanaAddress?: string | null;
 }
 
 interface Update {
@@ -83,10 +79,6 @@ export default function CampaignManagementClient({
   const [editHeadline, setEditHeadline] = useState(campaign.headline);
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [isEscrowModalOpen, setIsEscrowModalOpen] = useState(false);
-  const [escrowContractId, setEscrowContractId] = useState<string | null>(
-    campaign.escrowContractId || null
-  );
 
   const handleSaveHeadline = () => {
     setHeadline(editHeadline);
@@ -151,12 +143,6 @@ export default function CampaignManagementClient({
                 <Badge variant={campaign.status === "Active" ? "default" : "secondary"}>
                   {campaign.status}
                 </Badge>
-                {escrowContractId && (
-                  <Badge variant="outline" className="gap-1">
-                    <Shield className="h-3 w-3" />
-                    Escrow Active
-                  </Badge>
-                )}
               </div>
               {isEditingHeadline ? (
                 <div className="flex gap-2 items-center">
@@ -184,46 +170,20 @@ export default function CampaignManagementClient({
           </div>
         </div>
 
-        {/* Escrow Section */}
-        {campaign.stellarAddress && (
+        {campaign.solanaAddress && (
           <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Escrow Account
-              </CardTitle>
-              <Button
-                onClick={() => setIsEscrowModalOpen(true)}
-                variant={escrowContractId ? "outline" : "default"}
-                size="sm"
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                {escrowContractId ? "Edit Escrow" : "Create Escrow"}
-              </Button>
+            <CardHeader>
+              <CardTitle>Campaign Wallet</CardTitle>
             </CardHeader>
             <CardContent>
-              {escrowContractId ? (
-                <div className="space-y-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Escrow Contract ID</Label>
-                    <p className="font-mono text-sm break-all mt-1">{escrowContractId}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Stellar Address</Label>
-                    <p className="font-mono text-sm break-all mt-1">{campaign.stellarAddress}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    No escrow account has been created for this campaign yet.
-                  </p>
-                  <Button onClick={() => setIsEscrowModalOpen(true)} variant="outline">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Create Escrow Account
-                  </Button>
-                </div>
-              )}
+              <div>
+                <Label className="text-xs text-muted-foreground">Solana Address</Label>
+                <p className="font-mono text-sm break-all mt-1">{campaign.solanaAddress}</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                Donations are sent directly to this wallet on Solana. A 1% platform fee is
+                deducted automatically from each donation.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -436,23 +396,6 @@ export default function CampaignManagementClient({
           </TabsContent>
         </Tabs>
 
-        {/* Escrow Creation Modal */}
-        {campaign.stellarAddress && (
-          <CreateEscrowModal
-            open={isEscrowModalOpen}
-            onOpenChange={setIsEscrowModalOpen}
-            campaignId={campaign.id}
-            dogName={campaign.dogName}
-            careProviderAddress={campaign.careProviderStellarAddress || campaign.stellarAddress}
-            campaignStellarAddress={campaign.stellarAddress}
-            goal={campaign.goal}
-            existingEscrowId={escrowContractId}
-            onSuccess={(contractId) => {
-              setEscrowContractId(contractId);
-              setIsEscrowModalOpen(false);
-            }}
-          />
-        )}
       </div>
     </div>
   );

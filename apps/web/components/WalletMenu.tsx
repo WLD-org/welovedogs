@@ -3,19 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
-import { useWalletsKit } from "@/hooks/useWalletsKit";
-import { WalletNetwork } from "@creit.tech/stellar-wallets-kit";
-import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { useSolanaAccount } from "@/hooks/useSolanaAccount";
+import { getAccountExplorerUrl } from "@/lib/utils/solana-explorer";
+import { getSolanaNetwork } from "@/lib/solana/config";
 
 function truncateAddress(addr: string) {
   if (!addr) return "";
   if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 }
 
 export function WalletMenu() {
-  const { address, network, disconnect } = useWalletsKit();
-  const { lumensBalance, isLoading, refresh } = useStellarAccount(address);
+  const { address, disconnect } = useSolanaWallet();
+  const { usdcBalance, solBalance, isLoading, refresh } = useSolanaAccount(address);
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,14 +32,13 @@ export function WalletMenu() {
   }, [open]);
 
   useEffect(() => {
-    // refresh balance when menu opens
     if (open) refresh();
   }, [open, refresh]);
 
   if (!address) return null;
 
-  const explorerNetwork = network === WalletNetwork.PUBLIC ? "public" : "testnet";
-  const explorerUrl = `https://stellar.expert/explorer/${explorerNetwork}/account/${address}`;
+  const network = getSolanaNetwork();
+  const explorerUrl = getAccountExplorerUrl(address);
 
   return (
     <div className="relative" ref={popoverRef}>
@@ -56,8 +56,9 @@ export function WalletMenu() {
           </div>
 
           <div className="mb-3 rounded-md border p-2">
-            <div className="text-xs text-gray-500">Balance (XLM)</div>
-            <div className="text-lg font-semibold">{isLoading ? "…" : lumensBalance}</div>
+            <div className="text-xs text-gray-500">USDC Balance</div>
+            <div className="text-lg font-semibold">{isLoading ? "…" : usdcBalance}</div>
+            <div className="mt-1 text-xs text-gray-500">SOL: {isLoading ? "…" : solBalance}</div>
           </div>
 
           <div className="flex items-center justify-between gap-2">

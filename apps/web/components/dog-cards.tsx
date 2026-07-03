@@ -54,9 +54,7 @@ export function DogCards() {
   }, [dogs]);
 
   // Fetch donation totals for all campaigns
-  const [donationTotals, setDonationTotals] = useState<
-    Record<string, { total: number; escrow: number; instant: number }>
-  >({});
+  const [donationTotals, setDonationTotals] = useState<Record<string, number>>({});
   const [isLoadingDonations, setIsLoadingDonations] = useState(false);
 
   useEffect(() => {
@@ -81,29 +79,21 @@ export function DogCards() {
           return;
         }
 
-        const totals: Record<string, { total: number; escrow: number; instant: number }> = {};
+        const totals: Record<string, number> = {};
 
         transactions?.forEach(
           (tx: {
             campaign_id: string | null;
             usd_value: number | null;
-            donation_type: string | null;
           }) => {
             const campaignId = tx.campaign_id;
             if (!campaignId) return;
 
             if (!totals[campaignId]) {
-              totals[campaignId] = { total: 0, escrow: 0, instant: 0 };
+              totals[campaignId] = 0;
             }
 
-            const amount = Number(tx.usd_value || 0);
-            totals[campaignId].total += amount;
-
-            if (tx.donation_type === "escrow") {
-              totals[campaignId].escrow += amount;
-            } else if (tx.donation_type === "instant") {
-              totals[campaignId].instant += amount;
-            }
+            totals[campaignId] += Number(tx.usd_value || 0);
           }
         );
 
@@ -315,10 +305,7 @@ export function DogCards() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedDogs.map((dog) => {
             const campaignId = dog.campaigns?.[0]?.id;
-            const donationTotalsForCampaign = campaignId ? donationTotals[campaignId] : null;
-            const totalRaised = donationTotalsForCampaign?.total || 0;
-            const escrowDonations = donationTotalsForCampaign?.escrow || 0;
-            const instantDonations = donationTotalsForCampaign?.instant || 0;
+            const totalRaised = campaignId ? donationTotals[campaignId] || 0 : 0;
 
             return (
               <DogCard
@@ -332,7 +319,7 @@ export function DogCards() {
                     : "/placeholder.svg"
                 }
                 headline={dog.headline}
-                raised={instantDonations}
+                raised={totalRaised}
                 goal={dog.campaigns?.[0]?.goal || 0}
                 needsSurgery={dog.needs_surgery}
                 medicalTreatment={dog.medical_treatment}
@@ -348,8 +335,6 @@ export function DogCards() {
                 country={dog.country}
                 state={dog.state}
                 city={dog.city}
-                escrowBalance={escrowDonations > 0 ? escrowDonations : undefined}
-                isLoadingEscrow={isLoadingDonations}
               />
             );
           })}

@@ -42,89 +42,12 @@ export function DonationStory({ dog }: { dog: Dog }) {
 
   const [selectedUpdate, setSelectedUpdate] = useState<Update | null>(null);
 
-  // Escrow and balance state
-  const [escrowContractId, setEscrowContractId] = useState<string | null>(null);
-  const [campaignStellarAddr, setCampaignStellarAddr] = useState<string | null>(null);
-
-  // Fetch campaign data (escrow_id and stellar_address) from Supabase
-  useEffect(() => {
-    const fetchCampaignData = async () => {
-      if (!dog.campaignId) return;
-
-      try {
-        const supabase = createBrowserClient();
-        const { data: campaign } = await supabase
-          .from("campaigns")
-          .select("escrow_id, stellar_address")
-          .eq("id", dog.campaignId)
-          .maybeSingle();
-
-        if (campaign) {
-          if (campaign.stellar_address) {
-            setCampaignStellarAddr(campaign.stellar_address);
-          }
-          if (campaign.escrow_id) {
-            setEscrowContractId(campaign.escrow_id);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching campaign data:", err);
-      }
-    };
-
-    fetchCampaignData();
-  }, [dog.campaignId]);
-
-  // Memoize stellar address to prevent unnecessary re-renders
-  const stellarAddressToUse = useMemo(() => {
-    return campaignStellarAddr || dog.campaignStellarAddress || null;
-  }, [campaignStellarAddr, dog.campaignStellarAddress]);
-
-  // Transaction state - only use database transactions which are already filtered to donations
-  const [isLoadingTransactions] = useState(false);
-
-  // Use only database transactions (already filtered to donations from server query)
-  // dog.transactions is already populated with donations from the server-side query
-  const allTransactions = useMemo(() => {
-    // dog.transactions is already filtered to donations from the server query
-    // Map transactions to include type information
-    return (dog.transactions || []).map((tx) => {
-      // Check donation_type field to determine escrow vs instant
-      // tx.type is "donation" from database, so we check donation_type instead
-      const txWithType = tx as Transaction & { donation_type?: string };
-      const isEscrow = txWithType.donation_type === "escrow";
-
-      return {
-        ...tx,
-        type: (isEscrow ? "escrow" : "instant") as "escrow" | "instant",
-      };
-    });
+  // Calculate total donations from database transactions
+  const totalRaised = useMemo(() => {
+    return (dog.transactions || []).reduce((sum, tx) => sum + (tx.usdValue || 0), 0);
   }, [dog.transactions]);
 
-  // Calculate total donations from database transactions (not balances)
-  const { totalRaised, totalEscrowDonations, totalInstantDonations } = useMemo(() => {
-    let escrowTotal = 0;
-    let instantTotal = 0;
-
-    (dog.transactions || []).forEach((tx) => {
-      // Check donation_type field to determine escrow vs instant
-      const txWithType = tx as Transaction & { donation_type?: string };
-      const isEscrow = txWithType.donation_type === "escrow";
-      const amount = tx.usdValue || 0;
-
-      if (isEscrow) {
-        escrowTotal += amount;
-      } else {
-        instantTotal += amount;
-      }
-    });
-
-    return {
-      totalRaised: escrowTotal + instantTotal,
-      totalEscrowDonations: escrowTotal,
-      totalInstantDonations: instantTotal,
-    };
-  }, [dog.transactions]);
+  const allTransactions = useMemo(() => dog.transactions || [], [dog.transactions]);
 
   const sortedTransactions = useMemo(() => {
     return [...allTransactions].sort((a, b) => {
@@ -456,11 +379,7 @@ export function DonationStory({ dog }: { dog: Dog }) {
             <CampaignStatusCard
               dog={dog}
               totalRaised={totalRaised}
-              escrowDonations={totalEscrowDonations}
-              instantDonations={totalInstantDonations}
               isLoadingDonations={false}
-              escrowContractId={escrowContractId}
-              stellarAddressToUse={stellarAddressToUse}
             />
           </>
         );
@@ -502,9 +421,6 @@ export function DonationStory({ dog }: { dog: Dog }) {
               <h3 className="font-sans text-lg font-bold text-foreground md:text-xl">
                 Transaction History
               </h3>
-              {isLoadingTransactions && (
-                <span className="text-xs text-muted-foreground">Loading...</span>
-              )}
             </div>
             <p className="text-xs text-muted-foreground md:text-sm">
               All crypto donations are recorded on the blockchain for complete transparency. Click
@@ -515,7 +431,7 @@ export function DonationStory({ dog }: { dog: Dog }) {
               sortBy={sortBy}
               sortOrder={sortOrder}
               onSort={toggleSort}
-              isLoading={isLoadingTransactions}
+              isLoading={false}
             />
           </>
         );

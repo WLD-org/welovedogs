@@ -18,9 +18,8 @@ function DonationSuccessContent() {
   const router = useRouter();
   const dogName = searchParams.get("dog") || searchParams.get("dogName") || "this dog";
   const amount = searchParams.get("amount") || "0";
-  const donationType = searchParams.get("type") || "instant";
+  const donationType = "direct";
   const txHash = searchParams.get("hash") || "";
-  const contractId = searchParams.get("contractId") || "";
   const dogId = searchParams.get("dogId") || "";
   const donorAddress = searchParams.get("donorAddress") || "";
   const campaignId = searchParams.get("campaignId") || "";
@@ -37,7 +36,7 @@ function DonationSuccessContent() {
   const [dogsSupported, setDogsSupported] = useState(0);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [nftMinted, setNftMinted] = useState(false);
-  const [nftTokenId, setNftTokenId] = useState<number | null>(null);
+  const [nftTokenId, setNftTokenId] = useState<string | null>(null);
 
   const { mintNFTForDonation, isLoading: isMintingNFT } = useDonationNFT();
 
@@ -160,7 +159,6 @@ function DonationSuccessContent() {
           txHash,
           amount,
           donationType,
-          contractId,
           donorAddress,
         });
 
@@ -176,8 +174,7 @@ function DonationSuccessContent() {
             campaignId: campaignId || undefined,
             txHash,
             amount: parseFloat(amount),
-            donationType: donationType as "escrow" | "instant",
-            contractId: contractId || undefined,
+            donationType: "direct",
             donorAddress: donorAddress || undefined, // Pass the donor's wallet address
           }),
         });
@@ -212,11 +209,11 @@ function DonationSuccessContent() {
             updatedDonorId = transaction.donor_id;
             setDonorId(transaction.donor_id);
           } else if (donorAddress) {
-            // Try to find donor by stellar_address
+            // Try to find donor by solana_address
             const { data: donorByAddress } = await supabase
               .from("donors")
               .select("id")
-              .eq("stellar_address", donorAddress)
+              .eq("solana_address", donorAddress)
               .maybeSingle();
 
             if (donorByAddress?.id) {
@@ -426,7 +423,6 @@ function DonationSuccessContent() {
     txHash,
     amount,
     donationType,
-    contractId,
     donorAddress,
     campaignId,
     donationRecorded,
@@ -673,7 +669,7 @@ function DonationSuccessContent() {
                               try {
                                 const result = await mintNFTForDonation(donorId, transactionId);
                                 setNftMinted(true);
-                                setNftTokenId(result.tokenId);
+                                setNftTokenId(result.tokenId || result.mintAddress);
                                 toast.success("NFT minted!", {
                                   description: "Your Proof of Donation NFT is ready",
                                 });
@@ -711,8 +707,7 @@ function DonationSuccessContent() {
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-gray-700 mb-2">
-                            Your Proof of Donation NFT #{nftTokenId} has been minted and added to
-                            your wallet.
+                            Your Proof of Donation NFT has been minted and added to your wallet.
                           </p>
                           <Link href="/profile/donor">
                             <Button

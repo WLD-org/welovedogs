@@ -6,7 +6,8 @@ import { toast } from "sonner";
 
 export type MintNFTResult = {
   hash: string;
-  tokenId: number | null;
+  tokenId: string | null;
+  mintAddress: string | null;
   tokenUri: string;
 };
 
@@ -54,7 +55,8 @@ export function useDonationNFT() {
 
         return {
           hash: result.hash,
-          tokenId: result.tokenId,
+          tokenId: result.tokenId ?? result.mintAddress ?? null,
+          mintAddress: result.mintAddress ?? result.tokenId ?? null,
           tokenUri: result.tokenUri,
         };
       } catch (err: any) {

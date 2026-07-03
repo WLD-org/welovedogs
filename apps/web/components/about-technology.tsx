@@ -83,39 +83,32 @@ export function AboutTechnology() {
         </div>
       </div>
 
-      {/* Stellar Section - Black Background */}
+      {/* Solana Section */}
       <div className="bg-black py-16 md:py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 md:flex-row md:gap-16">
-            {/* Left: Stellar Logo */}
             <div className="flex-shrink-0">
-              <img
-                src="/images/design-mode/stellar-xlm-logo.png"
-                alt="Stellar logo"
-                className="h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 brightness-0 invert"
-              />
+              <div className="flex h-32 w-32 md:h-40 md:w-40 lg:h-48 lg:w-48 items-center justify-center rounded-2xl bg-gradient-to-br from-[#9945FF] to-[#14F195] text-4xl font-bold text-white">
+                SOL
+              </div>
             </div>
 
-            {/* Right: Content */}
             <div className="flex-1 text-white">
               <h3 className="mb-6 font-sans text-3xl font-bold md:text-4xl lg:text-5xl">
-                Built on Stellar
+                Built on Solana
               </h3>
               <p className="mb-8 text-lg leading-relaxed text-gray-300 md:text-xl">
-                We chose Stellar because donations should move the same way care does — fast,
-                direct, and without friction. Stellar makes every contribution traceable and
-                transparent, so supporters can see exactly where help goes, and care providers
-                receive funds without delays or unnecessary fees.
+                We chose Solana because donations should move the same way care does — fast,
+                direct, and without friction. Every contribution is traceable on-chain, so supporters
+                can see exactly where help goes, and care providers receive funds without delays.
               </p>
 
               <h4 className="mb-4 font-sans text-2xl font-bold md:text-3xl">
                 Real impact, not hype
               </h4>
               <p className="text-lg leading-relaxed text-gray-300 md:text-xl">
-                Stellar was created to make financial access fair and open. That mission aligns with
-                ours: make it easier for people to support dogs in need, no matter where they are.
-                With Stellar, the focus stays on what matters — getting help to the dogs who need
-                it.
+                Direct USDC donations with a transparent 1% platform fee keep the focus on what
+                matters — getting help to the dogs who need it.
               </p>
             </div>
           </div>

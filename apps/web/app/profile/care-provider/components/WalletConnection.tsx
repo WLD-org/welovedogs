@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
-import { useWalletsKit } from "@/hooks/useWalletsKit";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { createBrowserClient } from "@/lib/supabase/client";
 
 export function WalletConnection() {
   const [savingWallet, setSavingWallet] = useState(false);
-  const { address, openModalAndConnect, disconnect, isConnected } = useWalletsKit();
+  const { address, openModalAndConnect, disconnect, isConnected } = useSolanaWallet();
   const supabase = createBrowserClient();
 
   const handleSaveAddress = async () => {
@@ -23,7 +23,7 @@ export function WalletConnection() {
 
       const { error } = await supabase
         .from("care_providers")
-        .update({ stellar_address: address })
+        .update({ solana_address: address })
         .eq("auth_user_id", authUser.id);
 
       if (error) {
@@ -45,7 +45,7 @@ export function WalletConnection() {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <Wallet className="h-4 w-4 text-purple-600" />
-          Stellar Wallet
+          Solana Wallet
         </h3>
       </div>
       {isConnected ? (
@@ -82,7 +82,7 @@ export function WalletConnection() {
       ) : (
         <div className="space-y-2">
           <p className="text-xs text-gray-600">
-            Connect your Stellar wallet to save your address for campaigns
+            Connect your Solana wallet via WalletConnect to save your address for campaigns
           </p>
           <Button
             type="button"

@@ -1,85 +1,71 @@
 # NFT Integration Setup Guide
 
-This guide explains how the Proof of Donation (POD) NFT system works and how to configure it.
+This guide explains how the Proof of Donation (POD) NFT system works on Solana and how to configure it.
 
 ## Overview
 
-The NFT system integrates with the donation tracking flow to automatically mint commemorative NFTs when donors make contributions. NFTs are stored on IPFS for decentralized, permanent storage.
+The NFT system integrates with the donation tracking flow to mint commemorative POD NFTs after donors make contributions. Metadata and images are stored on IPFS (Pinata) and NFTs are minted on Solana using Metaplex Token Metadata.
 
 ## Features
 
-- **IPFS Integration**: NFT metadata and images are uploaded to IPFS using Pinata
-- **Automatic Minting**: NFTs can be minted after successful donations
-- **Quest Integration**: NFTs are linked to quest achievements
-- **17 Unique POD Images**: AI-generated artwork representing different donation tiers
-- **OpenZeppelin Stellar Contracts**: Uses the non-fungible token standard
+- **IPFS Integration**: NFT metadata and images uploaded to IPFS via Pinata
+- **Post-Donation Minting**: Donors can mint an NFT from the donation success page
+- **Quest Integration**: NFTs linked to donor achievements in Supabase
+- **17 Unique POD Images**: AI-generated artwork for different donation tiers
+- **Metaplex NFTs**: Standard Solana NFTs with symbol `POD`
 
 ## Environment Variables
 
 Add these to your `.env.local`:
 
 ```env
-# IPFS Configuration (Pinata)
+# Solana (see .env.example for full list)
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+
+# POD NFT mint authority (server-side only — never expose the secret to the client)
+POD_NFT_MINT_AUTHORITY_SECRET=<base58 or JSON array secret key>
+POD_NFT_MINT_AUTHORITY_PUBLIC_KEY=<optional, for display>
+NEXT_PUBLIC_POD_NFT_MINT_AUTHORITY=<optional public key for UI>
+NEXT_PUBLIC_POD_COLLECTION_MINT=<optional Metaplex collection mint>
+
+# IPFS (Pinata)
 PINATA_API_KEY=your_pinata_api_key
 PINATA_SECRET_API_KEY=your_pinata_secret_api_key
 NEXT_PUBLIC_IPFS_GATEWAY=https://gateway.pinata.cloud/ipfs
-
-# POD POAP Contract Configuration
-POD_POAP_CONTRACT_ID=your_contract_id
-POD_POAP_ADMIN_SECRET=your_admin_secret_key
-POD_POAP_BINDING=pod_poap
 ```
+
+### Mint authority setup
+
+1. Generate a Solana keypair (or use an existing one).
+2. Set `POD_NFT_MINT_AUTHORITY_SECRET` to the base58-encoded secret key or JSON byte array.
+3. Fund the mint authority wallet with SOL on devnet/mainnet to pay mint transaction fees.
+4. Optionally set `POD_NFT_MINT_AUTHORITY_PUBLIC_KEY` for display in the donor profile.
 
 ## Getting Pinata API Keys
 
 1. Sign up at [Pinata](https://www.pinata.cloud/)
-2. Go to API Keys section
-3. Create a new API key with `pinFileToIPFS` and `pinJSONToIPFS` permissions
-4. Copy the API Key and Secret API Key to your `.env.local`
+2. Go to API Keys
+3. Create a key with `pinFileToIPFS` and `pinJSONToIPFS` permissions
+4. Copy the API Key and Secret to `.env.local`
 
 ## Pre-uploading POD Images (Recommended)
 
-**You don't need to manually upload anything to Pinata!** The system will automatically upload images when NFTs are minted. However, for better performance, you can pre-upload all POD images:
-
-1. **Install tsx** (if not already installed):
-
 ```bash
-npm install -D tsx
-```
-
-2. **Run the upload script**:
-
-```bash
+cd apps/web
 npm run upload-pod-images
 ```
 
-This will:
-
-- Upload all 17 POD images to IPFS
-- Save IPFS hashes to `lib/utils/pod-ipfs-mapping.json`
-- Make NFT minting faster (no need to upload images each time)
-
-**Note**: If you skip this step, images will be uploaded automatically when NFTs are minted, but it will be slower.
+This uploads all 17 POD images to IPFS and saves hashes to `lib/utils/pod-ipfs-mapping.json`, making minting faster.
 
 ## NFT Minting Flow
 
-1. **Donation Made**: User makes a donation (escrow or instant)
-2. **Donation Recorded**: Transaction is recorded in the database
-3. **NFT Minting Option**: Donation success page shows "Mint NFT" button
-4. **IPFS Upload**:
-   - POD image is uploaded to IPFS
-   - Metadata JSON is created and uploaded to IPFS
-5. **NFT Minted**: NFT is minted on Stellar using the POD-POAP contract
-6. **Token URI Set**: IPFS metadata URL is set as the token URI
-7. **Achievement Updated**: Achievement record is updated with NFT info
-
-## POD Images
-
-The system includes 17 unique POD images located in `/public/images/POD/`:
-
-- Images are selected based on donation amount
-- Each image has a unique label (Aurora, Harbor, Summit, etc.)
-- Images are uploaded to IPFS when minting
+1. **Donation**: User donates USDC via direct Solana transfer (99% campaign / 1% platform).
+2. **Record**: Transaction saved in Supabase via `/api/donation/record`.
+3. **Mint option**: Donation success page shows "Mint Proof of Donation NFT".
+4. **IPFS**: POD image and metadata JSON uploaded to IPFS.
+5. **Mint**: Server mints Metaplex NFT to donor wallet via `mintPodNft()`.
+6. **Achievement**: `donor_achievements` updated with mint address and tx signature.
 
 ## API Endpoints
 
@@ -87,13 +73,13 @@ The system includes 17 unique POD images located in `/public/images/POD/`:
 
 Mints an NFT for a specific donation transaction.
 
-**Request Body:**
+**Request:**
 
 ```json
 {
   "donorId": "uuid",
   "transactionId": "uuid",
-  "donorAddress": "G..."
+  "donorAddress": "Solana wallet address"
 }
 ```
 
@@ -102,29 +88,25 @@ Mints an NFT for a specific donation transaction.
 ```json
 {
   "ok": true,
-  "hash": "transaction_hash",
-  "tokenId": 123,
+  "hash": "mint_tx_signature",
+  "mintAddress": "NFT_mint_address",
+  "tokenId": "NFT_mint_address",
   "tokenUri": "ipfs://Qm...",
-  "metadata": { ... }
+  "explorerUrl": "https://explorer.solana.com/tx/..."
 }
 ```
 
-### `POST /api/ipfs/upload-metadata`
+### `POST /api/pod-poap/mint`
 
-Uploads JSON metadata to IPFS.
+Generic admin mint endpoint (testing / manual mints).
 
-**Request Body:**
+### `GET /api/pod-poap/tokens/[address]`
 
-```json
-{
-  "metadata": {
-    "name": "...",
-    "description": "...",
-    "image": "ipfs://...",
-    "attributes": [...]
-  }
-}
-```
+Lists POD NFTs owned by a Solana wallet address.
+
+### `GET /api/pod-poap/metadata/[tokenId]`
+
+HTTP fallback metadata by image index (used when IPFS upload fails).
 
 ## NFT Metadata Structure
 
@@ -138,97 +120,47 @@ Uploads JSON metadata to IPFS.
     { "trait_type": "Series", "value": "Aurora" },
     { "trait_type": "Donation Amount", "value": "$50.00" },
     { "trait_type": "Dog", "value": "Dog Name" },
-    { "trait_type": "Transaction Hash", "value": "..." },
-    { "trait_type": "Donation Type", "value": "escrow" }
+    { "trait_type": "Network", "value": "Solana" }
   ],
   "external_url": "https://..."
 }
 ```
 
-## Integration Points
+## UI Integration
 
-### Donation Success Page
-
-- Shows "Mint NFT" button after donation is recorded
-- Displays success message when NFT is minted
-- Links to donor profile to view NFTs
-
-### Donor Profile
-
-- Displays minted NFTs in the gallery
-- Shows NFT metadata and images
-- Links to Stellar Expert for on-chain verification
-
-### Quest System
-
-- NFTs are linked to achievements
-- Achievement records store NFT token ID and transaction hash
-- Quest progress updates trigger NFT eligibility
-
-## IPFS Gateway
-
-The system uses Pinata's IPFS gateway by default, but you can configure a custom gateway:
-
-```env
-NEXT_PUBLIC_IPFS_GATEWAY=https://your-gateway.com/ipfs
-```
-
-Popular IPFS gateways:
-
-- Pinata: `https://gateway.pinata.cloud/ipfs`
-- Cloudflare: `https://cloudflare-ipfs.com/ipfs`
-- IPFS.io: `https://ipfs.io/ipfs`
-
-## Contract Deployment
-
-The POD-POAP contract uses OpenZeppelin Stellar Contracts. To deploy:
-
-1. Build the contract:
-
-```bash
-cd contracts
-cargo build --target wasm32-unknown-unknown --package pod-poap --release
-```
-
-2. Deploy using Soroban CLI:
-
-```bash
-soroban contract deploy --wasm target/wasm32-unknown-unknown/release/pod_poap.wasm
-```
-
-3. Initialize the contract:
-
-```bash
-soroban contract invoke --id CONTRACT_ID --fn __constructor --arg OWNER_ADDRESS
-```
-
-4. Set environment variables with the contract ID and admin secret.
+- **Donation success**: Mint button via `useDonationNFT`
+- **Donor profile**: `DonorNFTGallery` (DB + server blockchain sync) and `WalletPODSection` (live wallet view via `usePodPoap` + `PODGallery`)
+- **Explorer links**: Solana Explorer via `lib/utils/solana-explorer.ts`
 
 ## Troubleshooting
 
-### IPFS Upload Fails
+### NFT minting returns 503
 
-- Check Pinata API keys are correct
-- Verify API keys have correct permissions
-- System falls back to HTTP URLs if IPFS fails
+- `POD_NFT_MINT_AUTHORITY_SECRET` is not set on the server.
 
-### NFT Minting Fails
+### Mint transaction fails
 
-- Ensure wallet is connected
-- Verify POD_POAP_CONTRACT_ID is set
-- Check POD_POAP_ADMIN_SECRET has minting permissions
-- Verify donor has made a qualifying donation
+- Mint authority wallet has insufficient SOL for fees.
+- Invalid secret key format (use base58 or JSON byte array).
+- RPC URL unreachable or rate-limited.
 
-### Metadata Not Loading
+### IPFS upload fails
 
-- Check IPFS gateway is accessible
-- Verify metadata was uploaded successfully
-- Check token URI is set correctly on the contract
+- Check Pinata API keys and permissions.
+- System falls back to HTTP metadata URLs when IPFS fails.
 
-## Future Enhancements
+### Wallet shows no PODs
 
-- Automatic NFT minting on donation (without user action)
-- Multiple NFT tiers based on donation amounts
-- Special edition NFTs for milestones
-- NFT marketplace integration
-- Cross-chain NFT support
+- NFTs are filtered by symbol `POD` on-chain.
+- Ensure the donor wallet address matches the mint recipient.
+- Use "Refresh" in the donor profile wallet section.
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `lib/solana/nft.ts` | Metaplex mint + fetch by owner |
+| `app/api/nft/mint-for-donation/route.ts` | Donation-linked mint |
+| `hooks/useDonationNFT.ts` | Client mint hook |
+| `hooks/usePodPoap.ts` | Fetch wallet PODs |
+| `components/NFT/PODGallery.tsx` | On-chain POD gallery UI |

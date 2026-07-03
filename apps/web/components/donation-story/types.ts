@@ -16,7 +16,7 @@ export interface Dog {
   goal: number;
   spent?: number;
   campaignId?: string;
-  campaignStellarAddress?: string;
+  campaignSolanaAddress?: string;
 }
 
 export interface CareProvider {
@@ -49,8 +49,7 @@ export interface Transaction {
   donor: string;
   txHash: string;
   explorerUrl: string;
-  type?: "escrow" | "instant";
-  donation_type?: string; // "escrow" or "instant" from database
+  donation_type?: string;
 }
 
 export interface Expense {

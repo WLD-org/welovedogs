@@ -1,10 +1,10 @@
 /**
- * Gets the POD POAP contract ID from environment variables or returns default
+ * Gets the POD NFT mint authority public key from environment variables.
  */
-export function getPodPoapContractId(): string {
+export function getPodNftMintAuthority(): string | null {
   return (
-    process.env.POD_POAP_CONTRACT_ID ||
-    process.env.NEXT_PUBLIC_POD_POAP_CONTRACT_ID ||
-    "CB6L7W2OTD5LPTC5TOLFPLHTQXAYSHIB4DWA5UNI6PYJ53PW6LYDK3AE" // Fallback to deployed contract
+    process.env.POD_NFT_MINT_AUTHORITY_PUBLIC_KEY ||
+    process.env.NEXT_PUBLIC_POD_NFT_MINT_AUTHORITY ||
+    null
   );
 }

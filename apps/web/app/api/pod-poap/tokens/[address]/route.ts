@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createPodPoapClient } from "@/lib/contracts/podPoap";
+import { fetchPodNftsByOwner } from "@/lib/solana/nft";
 
 type RouteParams = { address: string };
 
@@ -15,33 +15,20 @@ export async function GET(_req: NextRequest, context: { params: Promise<RoutePar
       );
     }
 
-    const client = await createPodPoapClient();
-    const balanceTx = await client.balance({ account: address });
-    const balance = Number(balanceTx.result ?? 0);
-
-    const tokens = [];
-    for (let index = 0; index < balance; index += 1) {
-      const tokenTx = await client.get_owner_token_id({ owner: address, index });
-      const tokenId = Number(tokenTx.result ?? 0);
-
-      let tokenUri: string | null = null;
-      try {
-        const uriTx = await client.token_uri({ token_id: tokenId });
-        tokenUri = (uriTx.result as string) ?? null;
-      } catch {
-        tokenUri = null;
-      }
-
-      tokens.push({ tokenId, tokenUri });
-    }
+    const nfts = await fetchPodNftsByOwner(address);
 
     return NextResponse.json({
       ok: true,
       address,
-      balance,
-      tokens,
+      balance: nfts.length,
+      tokens: nfts.map((nft, index) => ({
+        tokenId: index,
+        mintAddress: nft.mintAddress,
+        tokenUri: nft.tokenUri,
+        name: nft.name,
+      })),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }

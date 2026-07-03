@@ -6,11 +6,10 @@ import { useWalletsKit } from "@/hooks/useWalletsKit";
 import { WalletMenu } from "@/components/WalletMenu";
 
 export function Navbar() {
-  const { appName, stellarNetwork } = getConfig();
+  const { appName, solanaNetwork } = getConfig();
   const [open, setOpen] = useState(false);
   const { isConnected, openModalAndConnect } = useWalletsKit();
-  const explorerNetwork = stellarNetwork === "public" ? "public" : "testnet";
-  const explorerHref = `https://stellar.expert/explorer/${explorerNetwork}`;
+  const explorerHref = `https://explorer.solana.com/?cluster=${solanaNetwork}`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -26,7 +25,7 @@ export function Navbar() {
           </button>
           <span className="inline-flex items-center gap-2 text-base font-semibold">
             <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-500 bg-clip-text text-transparent">
-              {appName || "Stellar App"}
+              {appName || "We Love Dogs"}
             </span>
             <span className="rounded-full bg-gray-900/5 px-2 py-0.5 text-[10px] font-medium text-gray-600">
               Starter
