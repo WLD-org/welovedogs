@@ -11,9 +11,8 @@
  *    - Donor levels (donor_levels table)
  *    - Related data: dogs, campaigns (via joins)
  *
- * 2. Escrow/Stellar Blockchain:
- *    - NFT achievements sync (via PodPoap contract) - fallback if not in database
- *    - Escrow contract IDs (stored in transactions.escrow_contract_id and campaigns.escrow_id)
+ * 2. Solana Blockchain:
+ *    - NFT achievements sync (via Metaplex POD NFTs) - fallback if not in database
  *
  * 3. Calculated/Transformed Data:
  *    - Total donated amount (sum of transaction.usd_value)
@@ -32,7 +31,7 @@ import {
   calculateDonorLevel,
 } from "./utils/donor-level";
 import { transformDonorData, transformDonations } from "./utils/donor-data";
-import { getPodPoapContractId } from "./utils/contract-id";
+import { getPodNftMintAuthority } from "./utils/contract-id";
 
 export default async function DonorProfilePage() {
   const supabase = await createServerClient();
@@ -107,23 +106,14 @@ export default async function DonorProfilePage() {
         .order("earned_at", { ascending: false })
     : { data: [] };
 
-  // Get NFT achievements with blockchain sync fallback (Escrow/Stellar blockchain)
-  // This syncs NFTs from blockchain if not found in database
+  // Get NFT achievements with blockchain sync fallback (Solana / Metaplex)
   const nftAchievements = await getNFTAchievements(allAchievements, donor?.solana_address);
 
-  // Debug logging for data sources
   if (donor && allAchievements) {
     console.log("[donor-profile] Donor ID:", donor.id);
-    console.log("[donor-profile] Stellar Address:", donor.stellar_address);
+    console.log("[donor-profile] Solana Address:", donor.solana_address);
     console.log("[donor-profile] Transactions count:", transactions?.length || 0);
-    console.log(
-      "[donor-profile] Escrow donations:",
-      transactions?.filter((t) => t.donation_type === "escrow").length || 0
-    );
-    console.log(
-      "[donor-profile] Instant donations:",
-      transactions?.filter((t) => t.donation_type === "instant").length || 0
-    );
+    console.log("[donor-profile] NFT achievements:", nftAchievements.length);
   }
 
   const { data: donorLevels } = await supabase
@@ -142,7 +132,7 @@ export default async function DonorProfilePage() {
   // Transform data for client component
   const donorData = transformDonorData(donor, user, totalDonatedAmount);
   const donations = transformDonations(transactions);
-  const contractId = getPodPoapContractId();
+  const mintAuthority = getPodNftMintAuthority();
 
   return (
     <DonorProfileClient
@@ -153,7 +143,7 @@ export default async function DonorProfilePage() {
       donorLevels={donorLevels || []}
       currentLevel={currentLevel}
       nftAchievements={nftAchievements || []}
-      contractId={contractId}
+      mintAuthority={mintAuthority}
     />
   );
 }

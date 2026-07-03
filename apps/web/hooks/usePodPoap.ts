@@ -5,7 +5,9 @@ import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 
 export type PodToken = {
   tokenId: number;
+  mintAddress: string;
   tokenUri: string | null;
+  name?: string;
 };
 
 type PodMetadata = {

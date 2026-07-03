@@ -5,45 +5,23 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { PodToken } from "@/hooks/usePodPoap";
 import type { TokenMetadata } from "./types";
+import { getAccountExplorerUrl } from "@/lib/utils/solana-explorer";
 
 type PodGalleryProps = {
   isConnected: boolean;
   tokens: PodToken[];
   loading?: boolean;
   refreshing?: boolean;
-  contractId?: string | null;
+  mintAuthority?: string | null;
   network?: string;
-  explorerBaseUrl?: string;
 };
 
-function resolveExplorerBase(network?: string, override?: string) {
-  if (override) {
-    return override.replace(/\/$/, "");
-  }
-
-  const normalized = (network ?? "testnet").toLowerCase();
-  return normalized === "public"
-    ? "https://stellar.expert/explorer/public"
-    : "https://stellar.expert/explorer/testnet";
+function buildExplorerUrl(mintAddress: string) {
+  return getAccountExplorerUrl(mintAddress);
 }
 
-function buildExplorerUrl({
-  contractId,
-  network,
-  explorerBaseUrl,
-  tokenId,
-}: {
-  contractId?: string | null;
-  network?: string;
-  explorerBaseUrl?: string;
-  tokenId: number;
-}) {
-  if (!contractId) {
-    return null;
-  }
-
-  const base = resolveExplorerBase(network, explorerBaseUrl);
-  return `${base}/contract/${contractId}#token-${tokenId}`;
+function getTokenKey(token: PodToken): string {
+  return token.mintAddress || String(token.tokenId);
 }
 
 export function PODGallery({
@@ -51,12 +29,9 @@ export function PODGallery({
   tokens,
   loading = false,
   refreshing = false,
-  contractId,
-  network,
-  explorerBaseUrl,
 }: PodGalleryProps) {
   const hasTokens = useMemo(() => tokens.length > 0, [tokens]);
-  const [tokenMetadata, setTokenMetadata] = useState<Record<number, TokenMetadata | null>>({});
+  const [tokenMetadata, setTokenMetadata] = useState<Record<string, TokenMetadata | null>>({});
   const [tokenMetadataLoading, setTokenMetadataLoading] = useState(false);
 
   useEffect(() => {
@@ -73,8 +48,9 @@ export function PODGallery({
       try {
         const entries = await Promise.all(
           tokens.map(async (token) => {
+            const key = getTokenKey(token);
             if (!token.tokenUri) {
-              return [token.tokenId, null] as const;
+              return [key, null] as const;
             }
 
             try {
@@ -83,13 +59,13 @@ export function PODGallery({
                 throw new Error(`${response.status} ${response.statusText}`);
               }
               const data = (await response.json()) as TokenMetadata;
-              return [token.tokenId, data] as const;
+              return [key, data] as const;
             } catch (error) {
               console.error(
-                `[pod][gallery] failed to load metadata for token #${token.tokenId}:`,
+                `[pod][gallery] failed to load metadata for mint ${key}:`,
                 error instanceof Error ? error.message : error
               );
-              return [token.tokenId, null] as const;
+              return [key, null] as const;
             }
           })
         );
@@ -135,35 +111,37 @@ export function PODGallery({
 
   return (
     <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {tokens.map((token) => (
-        <li key={token.tokenId} className="h-full">
-          <TokenCard
-            tokenId={token.tokenId}
-            metadata={tokenMetadata[token.tokenId] ?? null}
-            metadataUrl={token.tokenUri}
-            explorerUrl={buildExplorerUrl({
-              contractId,
-              network,
-              explorerBaseUrl,
-              tokenId: token.tokenId,
-            })}
-          />
-        </li>
-      ))}
+      {tokens.map((token) => {
+        const mintAddress = token.mintAddress || getTokenKey(token);
+        const key = getTokenKey(token);
+        return (
+          <li key={key} className="h-full">
+            <TokenCard
+              mintAddress={mintAddress}
+              displayName={token.name}
+              metadata={tokenMetadata[key] ?? null}
+              metadataUrl={token.tokenUri}
+              explorerUrl={buildExplorerUrl(mintAddress)}
+            />
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
 type TokenCardProps = {
-  tokenId: number;
+  mintAddress: string;
+  displayName?: string;
   metadata: TokenMetadata | null;
   metadataUrl: string | null;
   explorerUrl?: string | null;
 };
 
-function TokenCard({ tokenId, metadata, metadataUrl, explorerUrl }: TokenCardProps) {
+function TokenCard({ mintAddress, displayName, metadata, metadataUrl, explorerUrl }: TokenCardProps) {
   const imageSrc = metadata?.image ?? null;
-  const name = metadata?.name ?? `POD #${tokenId}`;
+  const shortMint = `${mintAddress.slice(0, 4)}…${mintAddress.slice(-4)}`;
+  const name = metadata?.name ?? displayName ?? `POD ${shortMint}`;
   const description = metadata?.description ?? "Certificado de una donación para rescate canino.";
   const attributes = metadata?.attributes ?? [];
   const collection = attributes.find((attr) => attr.trait_type === "Collection")?.value;
@@ -177,7 +155,7 @@ function TokenCard({ tokenId, metadata, metadataUrl, explorerUrl }: TokenCardPro
           <div className="absolute inset-0 translate-y-2 rounded-[22px] bg-linear-to-br from-indigo-100/50 via-fuchsia-100/40 to-sky-100/40 blur-3xl transition duration-300 group-hover:scale-110" />
           <div className="relative flex flex-col items-center gap-4 rounded-[22px] border border-white/60 bg-white/80 px-6 pb-6 pt-8 shadow-inner ring-1 ring-indigo-100/60">
             <span className="absolute left-5 top-5 inline-flex items-center rounded-full bg-indigo-50/80 px-3 py-1 text-xs font-semibold text-indigo-600 ring-1 ring-indigo-200/70">
-              POD #{tokenId}
+              {shortMint}
             </span>
             {series ? (
               <span className="absolute right-5 top-5 inline-flex items-center rounded-full bg-fuchsia-50/80 px-3 py-1 text-xs font-semibold text-fuchsia-600 ring-1 ring-fuchsia-200/70">
@@ -187,8 +165,7 @@ function TokenCard({ tokenId, metadata, metadataUrl, explorerUrl }: TokenCardPro
             <div className="flex h-44 w-44 items-center justify-center rounded-full border-[6px] border-white bg-linear-to-br from-white via-indigo-50 to-white shadow-[0_12px_25px_-12px_rgba(67,56,202,0.4)] ring-1 ring-indigo-100/70">
               {imageSrc ? (
                 <Link
-                  // @ts-ignore - dynamic route string handled at runtime
-                  href={`/pod/${tokenId}`}
+                  href={`/profile/donor`}
                   className="block h-[160px] w-[160px] overflow-hidden rounded-full"
                 >
                   <Image
@@ -245,8 +222,7 @@ function TokenCard({ tokenId, metadata, metadataUrl, explorerUrl }: TokenCardPro
 
         <div className="mt-auto flex flex-wrap items-center gap-3 pt-6">
           <Link
-            // @ts-ignore - dynamic route string handled at runtime
-            href={`/pod/${tokenId}`}
+            href="/profile/donor"
             className="inline-flex flex-1 items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_22px_-12px_rgba(79,70,229,0.8)] transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             Ver POD ↗
@@ -272,7 +248,7 @@ function TokenCard({ tokenId, metadata, metadataUrl, explorerUrl }: TokenCardPro
               rel="noreferrer"
               className="inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700"
             >
-              Ver en Stellar Explorer
+              Ver en Solana Explorer
             </a>
           ) : null}
           {metadata?.external_url ? (

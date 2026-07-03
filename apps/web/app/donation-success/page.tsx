@@ -36,7 +36,7 @@ function DonationSuccessContent() {
   const [dogsSupported, setDogsSupported] = useState(0);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [nftMinted, setNftMinted] = useState(false);
-  const [nftTokenId, setNftTokenId] = useState<number | null>(null);
+  const [nftTokenId, setNftTokenId] = useState<string | null>(null);
 
   const { mintNFTForDonation, isLoading: isMintingNFT } = useDonationNFT();
 
@@ -669,7 +669,7 @@ function DonationSuccessContent() {
                               try {
                                 const result = await mintNFTForDonation(donorId, transactionId);
                                 setNftMinted(true);
-                                setNftTokenId(result.tokenId);
+                                setNftTokenId(result.tokenId || result.mintAddress);
                                 toast.success("NFT minted!", {
                                   description: "Your Proof of Donation NFT is ready",
                                 });
@@ -707,8 +707,7 @@ function DonationSuccessContent() {
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-gray-700 mb-2">
-                            Your Proof of Donation NFT #{nftTokenId} has been minted and added to
-                            your wallet.
+                            Your Proof of Donation NFT has been minted and added to your wallet.
                           </p>
                           <Link href="/profile/donor">
                             <Button

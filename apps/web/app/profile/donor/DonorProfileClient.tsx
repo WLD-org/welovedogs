@@ -29,6 +29,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import DonorNFTGallery from "./DonorNFTGallery";
+import { WalletPODSection } from "@/components/NFT/WalletPODSection";
 
 interface DonorData {
   id: string;
@@ -98,7 +99,7 @@ export default function DonorProfileClient({
   donorLevels,
   currentLevel,
   nftAchievements = [],
-  contractId,
+  mintAuthority,
 }: {
   donorData: DonorData;
   donations: Donation[];
@@ -107,7 +108,7 @@ export default function DonorProfileClient({
   donorLevels: DonorLevel[];
   currentLevel: DonorLevel;
   nftAchievements?: NFTAchievement[];
-  contractId?: string;
+  mintAuthority?: string | null;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [donorData, setDonorData] = useState({
@@ -674,7 +675,8 @@ export default function DonorProfileClient({
                       of your generosity on the blockchain.
                     </p>
                   </div>
-                  <DonorNFTGallery nftAchievements={nftAchievements} contractId={contractId} />
+                  <DonorNFTGallery nftAchievements={nftAchievements} />
+                  <WalletPODSection mintAuthority={mintAuthority} />
                 </CardContent>
               </Card>
             </TabsContent>
