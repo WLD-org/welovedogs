@@ -6,9 +6,9 @@ Next.js 16 application for the WeLoveDogs donations platform: campaign discovery
 
 ```bash
 # From repo root
-npm install
+bun install
 cp apps/web/.env.example .env   # or use an existing root .env
-npm run dev
+bun run dev
 ```
 
 Environment variables are loaded from the **monorepo root** `.env` (see `next.config.ts`). You can also use `apps/web/.env.local`.
@@ -18,13 +18,13 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Scripts
 
 ```bash
-npm run dev      # Development server (webpack)
-npm run build    # Production build
-npm run start    # Production server
-npm run lint     # ESLint
+bun run dev      # Development server (Turbopack + Bun runtime)
+bun run build    # Production build
+bun run start    # Production server
+bun run lint     # ESLint
 
 # Seed helpers
-npx tsx scripts/seed-costa-rica-dogs.ts --upload-only
+bun scripts/seed-costa-rica-dogs.ts --upload-only
 ```
 
 ## Key routes

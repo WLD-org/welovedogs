@@ -83,9 +83,8 @@ welovedogs/
 
 ### Prerequisites
 
-- **Node.js 22+**
-- **npm 10+**
-- [Stellar CLI](https://developers.stellar.org/docs/tools/developer-tools) (for contract work)
+- **Bun 1.2+** ([install](https://bun.sh)) — package manager and script runner
+- **Node.js 22+** — required by Next.js at runtime
 - Supabase project (hosted or local CLI)
 
 ### Install and run
@@ -93,14 +92,14 @@ welovedogs/
 ```bash
 git clone <repository-url>
 cd welovedogs
-npm install
+bun install
 
 # Configure environment (monorepo root — loaded by apps/web/next.config.ts)
 cp apps/web/.env.example .env
-# Edit .env with Supabase, Stellar, and Trustless Work values
+# Edit .env with Supabase, Solana, and WalletConnect values
 
 # Start the web app
-npm run dev
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -116,7 +115,7 @@ Upload dog photos to Supabase Storage:
 
 ```bash
 cd apps/web
-npx tsx scripts/seed-costa-rica-dogs.ts --upload-only
+bun scripts/seed-costa-rica-dogs.ts --upload-only
 ```
 
 Apply the dog seed migration via Supabase (Dashboard SQL editor or MCP/CLI), then verify dogs appear on `/donate`.
@@ -162,19 +161,19 @@ See [`apps/web/README.md`](./apps/web/README.md) and [`docs/GETTING_STARTED.md`]
 From the repo root:
 
 ```bash
-npm run dev      # Start web app (Turborepo)
-npm run build    # Production build
-npm run lint     # Lint all workspaces
-npm run format   # Prettier
+bun run dev      # Start web app (Turborepo)
+bun run build    # Production build
+bun run lint     # Lint all workspaces
+bun run format   # Prettier
 ```
 
 From `apps/web`:
 
 ```bash
-npm run dev      # Next.js dev server
-npm run build    # Production build
-npm run lint     # ESLint
-npx tsx scripts/seed-costa-rica-dogs.ts --upload-only
+bun run dev      # Next.js dev server (Turbopack + Bun runtime)
+bun run build    # Production build
+bun run lint     # ESLint
+bun scripts/seed-costa-rica-dogs.ts --upload-only
 ```
 
 From `contracts/`:
@@ -197,7 +196,7 @@ npm run test     # Contract tests
 | Payments *(planned)* | Rozo (cross-chain intents) |
 | Yield *(planned)* | DeFindex (Soroban vaults), Etherfuse stablebonds |
 | NFTs | POD POAP Soroban contract + IPFS metadata |
-| Monorepo | Turborepo, npm workspaces |
+| Monorepo | Turborepo, Bun workspaces |
 
 ## Documentation
 
@@ -224,14 +223,14 @@ All transactions are verifiable on the Stellar network. Campaign metadata, stori
 The web app deploys to **Vercel** (or any Node.js host). Required production env vars: Supabase URL/keys, Stellar network config, contract bindings, Trustless Work addresses, WalletConnect project ID.
 
 ```bash
-cd apps/web && npm run build
+cd apps/web && bun run build
 ```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make changes and run `npm run lint`
+3. Make changes and run `bun run lint`
 4. Open a pull request
 
 ## License
