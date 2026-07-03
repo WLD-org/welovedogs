@@ -1,6 +1,6 @@
 /**
  * Script to pre-upload all POD images to IPFS
- * Run with: npx tsx scripts/upload-pod-images-to-ipfs.ts
+ * Run with: bun run upload-pod-images
  */
 
 import { uploadImageToIPFS } from "../lib/utils/ipfs";

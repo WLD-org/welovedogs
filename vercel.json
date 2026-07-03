@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo run build --filter=web",
-  "devCommand": "npx turbo run dev --filter=web",
-  "installCommand": "npm ci",
+  "buildCommand": "bunx turbo run build --filter=web",
+  "devCommand": "bunx turbo run dev --filter=web",
+  "installCommand": "bun install --frozen-lockfile",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet ."

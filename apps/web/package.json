@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
-    "start": "next start",
-    "lint": "next lint",
-    "upload-pod-images": "tsx scripts/upload-pod-images-to-ipfs.ts"
+    "dev": "bun --bun next dev --turbopack",
+    "build": "bun --bun next build --webpack",
+    "start": "bun --bun next start",
+    "lint": "bun --bun next lint",
+    "upload-pod-images": "bun scripts/upload-pod-images-to-ipfs.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -83,7 +83,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.15",
-    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

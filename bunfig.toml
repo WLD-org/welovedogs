@@ -1,0 +1,5 @@
+[install]
+# Monorepo workspaces — Bun hoists compatible with npm workspaces layout
+linker = "hoisted"
+
+[install.scopes]
